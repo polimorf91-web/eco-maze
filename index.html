@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <title>Эко-Лабиринт 🌿</title>
+    <link rel="stylesheet" href="css/style.css?v=5">
+</head>
+<body>
+    <!-- Предупреждение о ландшафтном режиме -->
+    <div id="landscape-warning">
+        <div class="icon">📱</div>
+        <div>Пожалуйста, переверните телефон вертикально</div>
+    </div>
+
+    <div id="game-wrapper">
+        <!-- Игровое поле -->
+        <canvas id="game-canvas"></canvas>
+
+        <!-- Полоса эко-фактов -->
+        <div id="fact-bar">
+            <span id="eco-fact">🌿 Собери мусор и спаси природу!</span>
+        </div>
+
+        <!-- Горизонтальная легенда предметов -->
+        <div id="legend-bar">
+            <button id="legend-toggle">?</button>
+            <div id="legend-items">
+                <div class="legend-item">
+                    <canvas class="legend-icon" id="icon-trash" width="24" height="24"></canvas>
+                    <span>Мусор</span>
+                </div>
+                <div class="legend-item">
+                    <canvas class="legend-icon" id="icon-bucket" width="24" height="24"></canvas>
+                    <span>Ведёрко</span>
+                </div>
+                <div class="legend-item">
+                    <canvas class="legend-icon" id="icon-exit" width="24" height="24"></canvas>
+                    <span>Выход</span>
+                </div>
+                <div class="legend-item">
+                    <canvas class="legend-icon" id="icon-cat" width="24" height="24"></canvas>
+                    <span>Котик</span>
+                </div>
+                <div class="legend-item">
+                    <canvas class="legend-icon" id="icon-flower" width="24" height="24"></canvas>
+                    <span>Цветок</span>
+                </div>
+                <div class="legend-item">
+                    <canvas class="legend-icon" id="icon-sneakers" width="24" height="24"></canvas>
+                    <span>Скорость</span>
+                </div>
+                <div class="legend-item">
+                    <canvas class="legend-icon" id="icon-rat" width="24" height="24"></canvas>
+                    <span>Крыса!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- D-Pad управление -->
+        <div id="dpad">
+            <div id="btn-up" class="dpad-btn">▲</div>
+            <div id="btn-left" class="dpad-btn">◄</div>
+            <div class="dpad-center">🌿</div>
+            <div id="btn-right" class="dpad-btn">►</div>
+            <div id="btn-down" class="dpad-btn">▼</div>
+        </div>
+    </div>
+
+    <!-- Скрипты -->
+    <script src="js/config.js?v=5"></script>
+    <script src="js/utils.js?v=5"></script>
+    <script src="js/audio.js?v=5"></script>
+    <script src="js/themes.js?v=5"></script>
+    <script src="js/sprites.js?v=5"></script>
+    <script src="js/maze.js?v=5"></script>
+    <script src="js/input.js?v=5"></script>
+    <script src="js/collision.js?v=5"></script>
+    <script src="js/ai.js?v=5"></script>
+    <script src="js/entities.js?v=5"></script>
+    <script src="js/levels.js?v=5"></script>
+    <script src="js/facts.js?v=5"></script>
+    <script src="js/animations.js?v=5"></script>
+    <script src="js/renderer.js?v=5"></script>
+    <script src="js/main.js?v=5"></script>
+</body>
+</html>
