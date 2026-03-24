@@ -62,6 +62,32 @@ ECO.Input = {
         document.addEventListener('touchcancel', function(e) {
             self._cleanupTouches(e.touches);
         });
+
+        // Кнопка mute
+        var muteBtn = document.getElementById('btn-mute');
+        if (muteBtn) {
+            var updateMuteIcon = function() {
+                muteBtn.textContent = ECO.Audio.enabled ? '\uD83D\uDD0A' : '\uD83D\uDD07';
+            };
+            muteBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                if (ECO.Audio.enabled) {
+                    ECO.Audio.enabled = false;
+                    ECO.Audio.stopMusic();
+                } else {
+                    ECO.Audio.enabled = true;
+                    if (ECO.Game.state === 'playing') {
+                        ECO.Audio.startMusic(ECO.Game._themeIndex);
+                    }
+                }
+                updateMuteIcon();
+            });
+            muteBtn.addEventListener('touchstart', function(e) {
+                e.preventDefault();
+                muteBtn.click();
+            }, { passive: false });
+            updateMuteIcon();
+        }
     },
 
     // Определить текущее направление из оставшихся нажатых клавиш/тачей

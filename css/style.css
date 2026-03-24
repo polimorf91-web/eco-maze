@@ -127,6 +127,16 @@ html, body {
     white-space: nowrap;
 }
 
+/* Controls row: D-Pad + mute */
+#controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    background: #1B5E20;
+    padding: 0 8px;
+}
+
 /* D-Pad */
 #dpad {
     display: grid;
@@ -141,11 +151,33 @@ html, body {
     background: #1B5E20;
     width: 100%;
     max-width: 260px;
-    margin: 0 auto;
     aspect-ratio: 3 / 3;
     max-height: 220px;
     touch-action: none;
     -webkit-touch-callout: none;
+}
+
+/* Mute button */
+#btn-mute {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #2E7D32;
+    border: 2px solid #388E3C;
+    color: white;
+    font-size: 22px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    touch-action: none;
+    transition: background 0.15s, transform 0.1s;
+}
+
+#btn-mute:active {
+    background: #66BB6A;
+    transform: scale(0.9);
 }
 
 .dpad-btn {
