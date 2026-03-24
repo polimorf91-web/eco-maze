@@ -578,6 +578,7 @@ ECO.Game = {
 
         // Выход
         var exit = ECO.Entities.createExit(mazeDef.exit.x, mazeDef.exit.y);
+        this.entities.push(exit);
         var occupied = {};
         occupied[key(mazeDef.spawn.x, mazeDef.spawn.y)] = true;
         occupied[key(mazeDef.bucket.x, mazeDef.bucket.y)] = true;
