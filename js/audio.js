@@ -26,32 +26,47 @@ ECO.Audio = {
     _melodies: [
         { // 0: Весёлая (город, площадка)
             notes: [523,587,659,587,523,494,440,494, 523,659,784,659,523,587,659,523,
-                    440,494,523,587,659,784,659,523, 392,440,494,523,587,523,494,440],
-            bass:  [262,262,330,330,349,349,262,262],
+                    440,494,523,587,659,784,659,523, 392,440,494,523,587,523,494,440,
+                    494,523,587,659,784,659,587,523, 440,494,523,494,440,392,440,494,
+                    523,587,659,784,880,784,659,523, 440,494,587,523,494,440,392,440],
+            bass:    [262,262,330,330,349,349,262,262, 220,220,262,262,349,349,262,262],
+            harmony: [392,392,494,494,523,523,392,392, 330,330,392,392,523,523,392,392],
             tempo: 0.22, type: 'sine', bassType: 'triangle'
         },
         { // 1: Таинственная (лес, пустыня)
             notes: [330,392,440,392,330,294,262,294, 330,294,262,294,330,392,440,392,
-                    262,294,330,349,392,349,330,294, 262,330,392,330,294,262,294,330],
-            bass:  [131,131,165,165,175,175,131,131],
+                    262,294,330,349,392,349,330,294, 262,330,392,330,294,262,294,330,
+                    349,392,440,494,440,392,349,330, 294,330,349,330,294,262,294,349,
+                    330,349,392,440,392,349,330,294, 262,294,330,294,262,330,349,330],
+            bass:    [131,131,165,165,175,175,131,131, 165,165,131,131,175,175,165,131],
+            harmony: [196,196,247,247,262,262,196,196, 247,247,196,196,262,262,247,196],
             tempo: 0.3, type: 'sine', bassType: 'sine'
         },
         { // 2: Энергичная (мегаполис, центр)
             notes: [659,784,880,784,659,784,880,1047, 880,784,659,587,523,587,659,784,
-                    880,784,659,587,523,659,784,880, 1047,880,784,659,784,880,784,659],
-            bass:  [330,330,392,392,440,440,330,330],
+                    880,784,659,587,523,659,784,880, 1047,880,784,659,784,880,784,659,
+                    587,659,784,880,1047,880,784,659, 587,523,587,659,784,880,784,659,
+                    523,587,659,784,880,1047,880,784, 659,784,880,784,659,587,523,587],
+            bass:    [330,330,392,392,440,440,330,330, 262,262,330,330,440,440,392,330],
+            harmony: [494,494,587,587,659,659,494,494, 392,392,494,494,659,659,587,494],
             tempo: 0.18, type: 'square', bassType: 'triangle'
         },
         { // 3: Спокойная (деревня, парк, квартира)
             notes: [392,440,494,523,494,440,392,349, 330,349,392,440,494,440,392,349,
-                    262,330,392,440,392,330,262,294, 330,392,440,392,349,330,294,262],
-            bass:  [196,196,220,220,262,262,196,196],
+                    262,330,392,440,392,330,262,294, 330,392,440,392,349,330,294,262,
+                    349,392,440,494,523,494,440,392, 349,330,349,392,440,392,349,330,
+                    294,330,392,440,494,440,392,349, 330,349,392,349,330,294,262,294],
+            bass:    [196,196,220,220,262,262,196,196, 175,175,196,196,262,262,220,196],
+            harmony: [294,294,330,330,392,392,294,294, 262,262,294,294,392,392,330,294],
             tempo: 0.28, type: 'sine', bassType: 'triangle'
         },
         { // 4: Зимняя (зима, школа, пляж)
             notes: [523,659,784,659,523,440,523,659, 784,880,784,659,523,659,784,1047,
-                    880,784,659,523,440,523,659,784, 659,523,440,392,440,523,659,523],
-            bass:  [262,262,220,220,175,175,262,262],
+                    880,784,659,523,440,523,659,784, 659,523,440,392,440,523,659,523,
+                    440,523,659,784,880,784,659,523, 440,392,440,523,659,784,659,523,
+                    392,440,523,659,784,880,784,659, 523,659,784,659,523,440,392,440],
+            bass:    [262,262,220,220,175,175,262,262, 220,220,262,262,175,175,220,262],
+            harmony: [392,392,330,330,262,262,392,392, 330,330,392,392,262,262,330,392],
             tempo: 0.25, type: 'sine', bassType: 'sine'
         }
     ],
@@ -93,19 +108,23 @@ ECO.Audio = {
         function scheduleLoop() {
             if (!self.musicPlaying) return;
             var now = nextLoopStart;
+
+            // Мелодия
             for (var i = 0; i < melody.length; i++) {
                 var osc = ctx.createOscillator();
                 var noteGain = ctx.createGain();
                 osc.type = melType;
                 osc.frequency.value = melody[i];
                 var t = now + i * noteLen;
-                noteGain.gain.setValueAtTime(0.3, t);
+                noteGain.gain.setValueAtTime(0.25, t);
                 noteGain.gain.exponentialRampToValueAtTime(0.001, t + noteLen * 0.9);
                 osc.connect(noteGain);
                 noteGain.connect(masterGain);
                 osc.start(t);
                 osc.stop(t + noteLen);
             }
+
+            // Бас
             var bass = melDef.bass;
             var bassLen = loopLen / bass.length;
             for (var j = 0; j < bass.length; j++) {
@@ -114,12 +133,71 @@ ECO.Audio = {
                 bOsc.type = bassType;
                 bOsc.frequency.value = bass[j];
                 var bt = now + j * bassLen;
-                bGain.gain.setValueAtTime(0.15, bt);
+                bGain.gain.setValueAtTime(0.12, bt);
                 bGain.gain.exponentialRampToValueAtTime(0.001, bt + bassLen * 0.8);
                 bOsc.connect(bGain);
                 bGain.connect(masterGain);
                 bOsc.start(bt);
                 bOsc.stop(bt + bassLen);
+            }
+
+            // Гармония (аккордовые тона, тихий sine)
+            var harmony = melDef.harmony;
+            if (harmony && harmony.length > 0) {
+                var harmLen = loopLen / harmony.length;
+                for (var h = 0; h < harmony.length; h++) {
+                    var hOsc = ctx.createOscillator();
+                    var hGain = ctx.createGain();
+                    hOsc.type = 'sine';
+                    hOsc.frequency.value = harmony[h];
+                    var ht = now + h * harmLen;
+                    hGain.gain.setValueAtTime(0.07, ht);
+                    hGain.gain.exponentialRampToValueAtTime(0.001, ht + harmLen * 0.7);
+                    hOsc.connect(hGain);
+                    hGain.connect(masterGain);
+                    hOsc.start(ht);
+                    hOsc.stop(ht + harmLen);
+                }
+            }
+
+            // Перкуссия (бочка + хай-хэт)
+            var percSteps = 16;
+            var percLen = loopLen / percSteps;
+            for (var p = 0; p < percSteps; p++) {
+                var pt = now + p * percLen;
+                // Бочка: на 1,5,9,13 долях
+                if (p % 4 === 0) {
+                    var kickOsc = ctx.createOscillator();
+                    var kickGain = ctx.createGain();
+                    kickOsc.type = 'sine';
+                    kickOsc.frequency.setValueAtTime(150, pt);
+                    kickOsc.frequency.exponentialRampToValueAtTime(40, pt + 0.1);
+                    kickGain.gain.setValueAtTime(0.12, pt);
+                    kickGain.gain.exponentialRampToValueAtTime(0.001, pt + 0.12);
+                    kickOsc.connect(kickGain);
+                    kickGain.connect(masterGain);
+                    kickOsc.start(pt);
+                    kickOsc.stop(pt + 0.15);
+                }
+                // Хай-хэт: на 3,7,11,15 долях
+                if (p % 4 === 2) {
+                    try {
+                        var hatDur = 0.04;
+                        var hatBufSize = Math.floor(ctx.sampleRate * hatDur);
+                        var hatBuf = ctx.createBuffer(1, hatBufSize, ctx.sampleRate);
+                        var hatData = hatBuf.getChannelData(0);
+                        for (var hi = 0; hi < hatBufSize; hi++) {
+                            hatData[hi] = (Math.random() * 2 - 1) * Math.exp(-hi / hatBufSize * 8);
+                        }
+                        var hatSrc = ctx.createBufferSource();
+                        hatSrc.buffer = hatBuf;
+                        var hatGain = ctx.createGain();
+                        hatGain.gain.value = 0.05;
+                        hatSrc.connect(hatGain);
+                        hatGain.connect(masterGain);
+                        hatSrc.start(pt);
+                    } catch(e) {}
+                }
             }
 
             nextLoopStart += loopLen;
@@ -303,13 +381,19 @@ ECO.Audio = {
 
     playVictory: function() {
         this._playNotes([
-            { freq: 523, dur: 0.12 },
-            { freq: 659, dur: 0.12 },
-            { freq: 784, dur: 0.12 },
-            { freq: 1047, dur: 0.2 },
+            { freq: 523, dur: 0.1 },
+            { freq: 659, dur: 0.1 },
             { freq: 784, dur: 0.1 },
             { freq: 1047, dur: 0.15 },
-            { freq: 1319, dur: 0.3 }
+            { freq: 784, dur: 0.08 },
+            { freq: 1047, dur: 0.12 },
+            { freq: 1319, dur: 0.15 },
+            { freq: 1047, dur: 0.1 },
+            { freq: 1175, dur: 0.1 },
+            { freq: 1319, dur: 0.1 },
+            { freq: 1568, dur: 0.25 },
+            { freq: 1319, dur: 0.1 },
+            { freq: 1568, dur: 0.35 }
         ], 'triangle', 0.15);
     }
 };

@@ -233,6 +233,188 @@ ECO.Sprites = {
         ctx.restore();
     },
 
+    // Мальчик-школьник (чиби-стиль: короткие волосы, футболка, штаны)
+    drawBoy: function(ctx, x, y, size, direction, bagSize, frame, hasShield, skinIndex) {
+        var s = size;
+        var cx = x + s / 2;
+        var cy = y + s / 2;
+        var DIR = ECO.Config.DIR;
+        var skin = ECO.Config.SKINS[skinIndex || 0] || ECO.Config.SKINS[0];
+
+        var walking = (direction !== DIR.NONE);
+        var bounce = walking ? Math.sin(frame * 0.6) * s * 0.02 : 0;
+        var legPhase = walking ? Math.sin(frame * 0.6) : 0;
+
+        ctx.save();
+
+        // Щит
+        if (hasShield) {
+            var pulse = 0.2 + Math.sin(Date.now() / 400) * 0.1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, s * 0.52, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(76, 175, 80, ' + pulse + ')';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(56, 142, 60, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        // Тень
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + s * 0.44, s * 0.22, s * 0.06, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ножки (штаны + обувь)
+        var legOff = legPhase * s * 0.08;
+        ctx.fillStyle = skin.pants;
+        ctx.fillRect(cx - s * 0.11 + legOff, cy + s * 0.2 + bounce, s * 0.1, s * 0.15);
+        ctx.fillRect(cx + s * 0.01 - legOff, cy + s * 0.2 + bounce, s * 0.1, s * 0.15);
+        ctx.fillStyle = skin.shoes;
+        ctx.beginPath();
+        ctx.ellipse(cx - s * 0.06 + legOff, cy + s * 0.39 + bounce, s * 0.06, s * 0.035, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + s * 0.06 - legOff, cy + s * 0.39 + bounce, s * 0.06, s * 0.035, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Тело (футболка — прямоугольник)
+        ctx.fillStyle = skin.shirt;
+        ctx.beginPath();
+        ctx.moveTo(cx - s * 0.17, cy - s * 0.02 + bounce);
+        ctx.lineTo(cx - s * 0.17, cy + s * 0.22 + bounce);
+        ctx.lineTo(cx + s * 0.17, cy + s * 0.22 + bounce);
+        ctx.lineTo(cx + s * 0.17, cy - s * 0.02 + bounce);
+        ctx.closePath();
+        ctx.fill();
+        // Воротничок
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(cx, cy - s * 0.02 + bounce, s * 0.08, 0.3, Math.PI - 0.3);
+        ctx.strokeStyle = '#FFF';
+        ctx.lineWidth = s * 0.03;
+        ctx.stroke();
+        // Полоска на футболке
+        ctx.fillStyle = skin.shirtAccent;
+        ctx.fillRect(cx - s * 0.15, cy + s * 0.12 + bounce, s * 0.3, s * 0.03);
+
+        // Руки
+        ctx.fillStyle = '#FFCC80';
+        ctx.beginPath();
+        ctx.ellipse(cx - s * 0.22, cy + s * 0.1 + bounce - legOff * 0.5, s * 0.05, s * 0.08, 0.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + s * 0.22, cy + s * 0.1 + bounce + legOff * 0.5, s * 0.05, s * 0.08, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Пакет с мусором
+        if (bagSize > 0) {
+            var bagW = s * 0.12 + Math.min(bagSize, 10) * s * 0.02;
+            var bagH = s * 0.14 + Math.min(bagSize, 10) * s * 0.025;
+            bagW = Math.min(bagW, s * 0.35);
+            bagH = Math.min(bagH, s * 0.35);
+            var bagX = cx + s * 0.18;
+            var bagY = cy + s * 0.02 + bounce;
+            ctx.fillStyle = '#8D6E63';
+            ctx.beginPath();
+            ctx.moveTo(bagX, bagY);
+            ctx.lineTo(bagX + bagW * 0.15, bagY + bagH);
+            ctx.lineTo(bagX + bagW, bagY + bagH * 0.9);
+            ctx.lineTo(bagX + bagW * 0.85, bagY - bagH * 0.1);
+            ctx.closePath();
+            ctx.fill();
+            ctx.fillStyle = '#6D4C41';
+            ctx.beginPath();
+            ctx.arc(bagX + bagW * 0.4, bagY - bagH * 0.05, bagW * 0.15, 0, Math.PI * 2);
+            ctx.fill();
+            if (bagSize >= 3) {
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(bagX + bagW * 0.3, bagY - bagH * 0.2, s * 0.04, s * 0.08);
+            }
+        }
+
+        // Голова
+        ctx.fillStyle = skin.hairBase;
+        ctx.beginPath();
+        ctx.arc(cx, cy - s * 0.16 + bounce, s * 0.24, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Лицо
+        ctx.fillStyle = '#FFCC80';
+        ctx.beginPath();
+        ctx.arc(cx, cy - s * 0.13 + bounce, s * 0.21, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Волосы (короткие — шапочка сверху)
+        ctx.fillStyle = skin.hair;
+        ctx.beginPath();
+        ctx.arc(cx, cy - s * 0.2 + bounce, s * 0.22, Math.PI + 0.3, -0.3);
+        ctx.fill();
+        // Чёлка — прямая
+        ctx.beginPath();
+        ctx.moveTo(cx - s * 0.2, cy - s * 0.1 + bounce);
+        ctx.lineTo(cx - s * 0.16, cy - s * 0.07 + bounce);
+        ctx.lineTo(cx - s * 0.06, cy - s * 0.1 + bounce);
+        ctx.lineTo(cx + s * 0.06, cy - s * 0.07 + bounce);
+        ctx.lineTo(cx + s * 0.16, cy - s * 0.1 + bounce);
+        ctx.lineTo(cx + s * 0.2, cy - s * 0.12 + bounce);
+        ctx.lineTo(cx + s * 0.22, cy - s * 0.25 + bounce);
+        ctx.arc(cx, cy - s * 0.2 + bounce, s * 0.22, -0.2, Math.PI + 0.2, true);
+        ctx.fill();
+
+        // Глаза (аниме-стиль, как у девочки)
+        var eyeOffX = 0, eyeOffY = 0;
+        if (direction === DIR.LEFT) eyeOffX = -s * 0.03;
+        if (direction === DIR.RIGHT) eyeOffX = s * 0.03;
+        if (direction === DIR.UP) eyeOffY = -s * 0.02;
+        if (direction === DIR.DOWN) eyeOffY = s * 0.02;
+
+        var eyeY = cy - s * 0.12 + bounce;
+        var eyeSpacing = s * 0.09;
+
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.ellipse(cx - eyeSpacing + eyeOffX, eyeY + eyeOffY, s * 0.06, s * 0.07, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.ellipse(cx + eyeSpacing + eyeOffX, eyeY + eyeOffY, s * 0.06, s * 0.07, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#4E342E';
+        ctx.beginPath();
+        ctx.arc(cx - eyeSpacing + eyeOffX * 1.3, eyeY + eyeOffY * 1.3 + s * 0.01, s * 0.04, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + eyeSpacing + eyeOffX * 1.3, eyeY + eyeOffY * 1.3 + s * 0.01, s * 0.04, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#1A1A1A';
+        ctx.beginPath();
+        ctx.arc(cx - eyeSpacing + eyeOffX * 1.5, eyeY + eyeOffY * 1.5 + s * 0.015, s * 0.022, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + eyeSpacing + eyeOffX * 1.5, eyeY + eyeOffY * 1.5 + s * 0.015, s * 0.022, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Блики
+        ctx.fillStyle = '#FFF';
+        ctx.beginPath();
+        ctx.arc(cx - eyeSpacing + eyeOffX + s * 0.02, eyeY + eyeOffY - s * 0.02, s * 0.015, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.beginPath();
+        ctx.arc(cx + eyeSpacing + eyeOffX + s * 0.02, eyeY + eyeOffY - s * 0.02, s * 0.015, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Ротик
+        ctx.beginPath();
+        ctx.arc(cx + eyeOffX * 0.5, cy - s * 0.04 + bounce, s * 0.035, 0.2, Math.PI - 0.2);
+        ctx.strokeStyle = '#C62828';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        ctx.restore();
+    },
+
     // Маскот Ведёрко (по референсу: серебристое металлическое ведро, гугли-глаза, белый пакет сверху)
     drawBucket: function(ctx, x, y, size, isFull, playerAngle) {
         var s = size;
@@ -1071,5 +1253,85 @@ ECO.Sprites = {
         ctx.lineWidth = 1;
         ctx.stroke();
         ctx.restore();
+    },
+
+    // Кубок победы
+    drawTrophy: function(ctx, x, y, size, time) {
+        var s = size;
+        var cx = x + s / 2;
+        var cy = y + s / 2;
+        var bounce = Math.sin((time || 0) / 300) * s * 0.03;
+        var scale = 1 + Math.sin((time || 0) / 500) * 0.04;
+
+        ctx.save();
+        ctx.translate(cx, cy + bounce);
+        ctx.scale(scale, scale);
+        ctx.translate(-cx, -cy);
+
+        // Основание
+        ctx.fillStyle = '#8D6E63';
+        this._roundRect(ctx, cx - s * 0.15, cy + s * 0.25, s * 0.3, s * 0.08, 3);
+        ctx.fill();
+        ctx.fillStyle = '#6D4C41';
+        ctx.fillRect(cx - s * 0.08, cy + s * 0.18, s * 0.16, s * 0.08);
+
+        // Чаша кубка
+        var grad = ctx.createLinearGradient(cx - s * 0.25, cy, cx + s * 0.25, cy);
+        grad.addColorStop(0, '#FFC107');
+        grad.addColorStop(0.3, '#FFEE58');
+        grad.addColorStop(0.5, '#FFF9C4');
+        grad.addColorStop(0.7, '#FFEE58');
+        grad.addColorStop(1, '#FFC107');
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(cx - s * 0.25, cy - s * 0.2);
+        ctx.quadraticCurveTo(cx - s * 0.28, cy + s * 0.1, cx - s * 0.08, cy + s * 0.18);
+        ctx.lineTo(cx + s * 0.08, cy + s * 0.18);
+        ctx.quadraticCurveTo(cx + s * 0.28, cy + s * 0.1, cx + s * 0.25, cy - s * 0.2);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ручки
+        ctx.strokeStyle = '#FFC107';
+        ctx.lineWidth = s * 0.04;
+        ctx.beginPath();
+        ctx.arc(cx - s * 0.28, cy - s * 0.05, s * 0.1, -1.2, 1.2);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.arc(cx + s * 0.28, cy - s * 0.05, s * 0.1, Math.PI - 1.2, Math.PI + 1.2);
+        ctx.stroke();
+
+        // Звезда на кубке
+        ctx.fillStyle = '#FF6F00';
+        var starCx = cx, starCy = cy - s * 0.02;
+        var outerR = s * 0.08, innerR = s * 0.035;
+        ctx.beginPath();
+        for (var i = 0; i < 10; i++) {
+            var r = i % 2 === 0 ? outerR : innerR;
+            var angle = -Math.PI / 2 + (Math.PI * 2 / 10) * i;
+            if (i === 0) ctx.moveTo(starCx + r * Math.cos(angle), starCy + r * Math.sin(angle));
+            else ctx.lineTo(starCx + r * Math.cos(angle), starCy + r * Math.sin(angle));
+        }
+        ctx.closePath();
+        ctx.fill();
+
+        // Блик
+        ctx.fillStyle = 'rgba(255,255,255,0.4)';
+        ctx.beginPath();
+        ctx.ellipse(cx - s * 0.1, cy - s * 0.1, s * 0.04, s * 0.12, -0.3, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    },
+
+    _roundRect: function(ctx, x, y, w, h, r) {
+        ctx.beginPath();
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.arcTo(x + w, y, x + w, y + h, r);
+        ctx.arcTo(x + w, y + h, x, y + h, r);
+        ctx.arcTo(x, y + h, x, y, r);
+        ctx.arcTo(x, y, x + w, y, r);
+        ctx.closePath();
     }
 };

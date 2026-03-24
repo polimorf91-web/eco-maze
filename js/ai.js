@@ -3,6 +3,9 @@ ECO.AI = {
     // Обновить путь крысы к игроку
     updateRatPath: function(rat, playerTileX, playerTileY, grid) {
         if (rat.frozen) return;
+        // Сохранить позицию игрока для прямого преследования
+        rat._targetPlayerX = playerTileX;
+        rat._targetPlayerY = playerTileY;
         // Считать путь от точки назначения (если в движении) чтобы не телепортироваться
         var fromX = rat.moving ? rat.targetTileX : rat.tileX;
         var fromY = rat.moving ? rat.targetTileY : rat.tileY;
@@ -14,9 +17,44 @@ ECO.AI = {
         }
     },
 
+    // Прямое преследование на коротких дистанциях (без BFS)
+    _ratDirectStep: function(rat, grid) {
+        var px = rat._targetPlayerX;
+        var py = rat._targetPlayerY;
+        if (px === undefined) return null;
+        var dx = px - rat.tileX;
+        var dy = py - rat.tileY;
+        var dist = Math.abs(dx) + Math.abs(dy);
+        if (dist === 0) return [];
+        if (dist === 1) return [{ x: px, y: py }];
+        // 2 тайла — попробовать шаг в нужном направлении
+        if (dist === 2) {
+            var steps = [];
+            if (dx !== 0) steps.push({ x: rat.tileX + (dx > 0 ? 1 : -1), y: rat.tileY });
+            if (dy !== 0) steps.push({ x: rat.tileX, y: rat.tileY + (dy > 0 ? 1 : -1) });
+            for (var i = 0; i < steps.length; i++) {
+                if (ECO.Collision.canMoveTo(grid, steps[i].x, steps[i].y)) {
+                    return [steps[i]];
+                }
+            }
+        }
+        return null; // слишком далеко — использовать BFS
+    },
+
     // Двигать крысу по пути
     moveRat: function(rat, dt, grid, speed) {
-        if (rat.frozen || !rat.path || rat.path.length === 0) return;
+        if (rat.frozen) return;
+
+        // Fallback: если путь пуст и не в движении — попробовать прямой шаг
+        if ((!rat.path || rat.path.length === 0) && !rat.moving) {
+            var direct = this._ratDirectStep(rat, grid);
+            if (direct && direct.length > 0) {
+                rat.path = direct;
+            } else {
+                return;
+            }
+        }
+        if (!rat.path || rat.path.length === 0) return;
 
         if (!rat.moving) {
             var next = rat.path[0];
@@ -64,7 +102,7 @@ ECO.AI = {
         var targetX, targetY;
         var speed;
 
-        if (cat.state === 'following') {
+        if (cat.state === 'hunting' || cat.state === 'following') {
             targetX = playerTileX;
             targetY = playerTileY;
             speed = ECO.Config.CAT_FOLLOW_SPEED;

@@ -234,7 +234,12 @@ ECO.Renderer = {
 
         // Маскот Ведёрко (слева) + Девочка (справа)
         ECO.Sprites.drawBucket(ctx, w / 2 - 80, h * 0.18, 65, false, 0);
-        ECO.Sprites.drawGirl(ctx, w / 2 + 15, h * 0.18, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
+        var menuSkin = ECO.Config.SKINS[skinIdx] || ECO.Config.SKINS[0];
+        if (menuSkin.gender === 'boy') {
+            ECO.Sprites.drawBoy(ctx, w / 2 + 15, h * 0.18, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
+        } else {
+            ECO.Sprites.drawGirl(ctx, w / 2 + 15, h * 0.18, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
+        }
 
         // Описание
         ctx.font = '16px sans-serif';
@@ -369,22 +374,32 @@ ECO.Renderer = {
         var w = this.width;
         var h = this.height;
 
+        // Однократный запуск анимаций
+        if (!this._victoryStarted) {
+            this._victoryStarted = true;
+            this._victoryTime = 0;
+            ECO.Animations.spawnConfetti(w / 2, h * 0.3, 60);
+            ECO.Audio.playVictory();
+        }
+        this._victoryTime += 16;
+
+        // Фон
         ctx.fillStyle = '#E8F5E9';
         ctx.fillRect(0, 0, w, h);
 
-        // Анимация — деревья
+        // Деревья
         ctx.fillStyle = '#4CAF50';
         for (var i = 0; i < 8; i++) {
             var tx = (i + 0.5) * w / 8;
             ctx.beginPath();
-            ctx.moveTo(tx, h * 0.75);
-            ctx.lineTo(tx - 20, h * 0.85);
-            ctx.lineTo(tx + 20, h * 0.85);
+            ctx.moveTo(tx, h * 0.78);
+            ctx.lineTo(tx - 20, h * 0.88);
+            ctx.lineTo(tx + 20, h * 0.88);
             ctx.fill();
             ctx.beginPath();
-            ctx.moveTo(tx, h * 0.68);
-            ctx.lineTo(tx - 15, h * 0.77);
-            ctx.lineTo(tx + 15, h * 0.77);
+            ctx.moveTo(tx, h * 0.71);
+            ctx.lineTo(tx - 15, h * 0.8);
+            ctx.lineTo(tx + 15, h * 0.8);
             ctx.fill();
         }
 
@@ -394,7 +409,7 @@ ECO.Renderer = {
         ctx.lineWidth = 2;
         for (var b = 0; b < 5; b++) {
             var bx = w * 0.2 + b * w * 0.15 + Math.sin(Date.now() / 1000 + b) * 20;
-            var by = h * 0.12 + b * 8;
+            var by = h * 0.05 + b * 6;
             ctx.beginPath();
             ctx.moveTo(bx - 8, by + 4);
             ctx.quadraticCurveTo(bx - 4, by, bx, by + 2);
@@ -403,33 +418,45 @@ ECO.Renderer = {
         }
         ctx.restore();
 
+        // Кубок (по центру сверху)
+        var trophySize = Math.min(w * 0.35, 120);
+        ECO.Sprites.drawTrophy(ctx, w / 2 - trophySize / 2, h * 0.08, trophySize, this._victoryTime);
+
+        // Периодические фейерверки
+        if (this._victoryTime % 1500 < 20) {
+            var fx = w * (0.15 + Math.random() * 0.7);
+            var fy = h * (0.05 + Math.random() * 0.3);
+            ECO.Animations.spawnFirework(fx, fy);
+        }
+
+        // Заголовок
         ctx.fillStyle = '#2E7D32';
-        ctx.font = 'bold 28px sans-serif';
+        ctx.font = 'bold 24px sans-serif';
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
-        ctx.fillText('🎉 Ты — настоящий эко-герой! 🎉', w / 2, h * 0.2);
+        ctx.fillText('Ты \u2014 настоящий эко-герой!', w / 2, h * 0.32);
 
         // Статистика
-        ctx.font = '18px sans-serif';
-        ctx.fillStyle = '#333';
-        ctx.fillText('Мусора собрано: ' + (game.totalTrashCollected || 0), w / 2, h * 0.32);
-        ctx.fillText('Время: ' + ECO.Utils.formatTime(game.totalTime || 0), w / 2, h * 0.38);
-
-        // Звёзды за уровни (динамический spacing для маленьких экранов)
         ctx.font = '16px sans-serif';
-        var starsY = h * 0.44;
-        var starsEndY = h * 0.68; // не наезжать на кнопки
-        var maxStarSpacing = 24;
+        ctx.fillStyle = '#333';
+        ctx.fillText('Мусора собрано: ' + (game.totalTrashCollected || 0), w / 2, h * 0.39);
+        ctx.fillText('Время: ' + ECO.Utils.formatTime(game.totalTime || 0), w / 2, h * 0.44);
+
+        // Звёзды за уровни
+        ctx.font = '14px sans-serif';
+        var starsY = h * 0.5;
+        var starsEndY = h * 0.66;
+        var maxStarSpacing = 22;
         var starSpacing = Math.min(maxStarSpacing, (starsEndY - starsY) / Math.max(1, ECO.Config.STORY_LEVELS));
         for (var lv = 0; lv < ECO.Config.STORY_LEVELS; lv++) {
             var stars = game.levelStars ? (game.levelStars[lv + 1] || 0) : 0;
             var starLine = 'Ур.' + (lv + 1) + ': ';
-            for (var si = 0; si < 3; si++) starLine += si < stars ? '⭐' : '☆';
+            for (var si = 0; si < 3; si++) starLine += si < stars ? '\u2B50' : '\u2606';
             ctx.fillText(starLine, w / 2, starsY + lv * starSpacing);
         }
 
         // Кнопки
-        var btnW = 200, btnH = 45;
+        var btnW = 200, btnH = 42;
         var y1 = h * 0.72;
         var y2 = h * 0.82;
 
@@ -437,14 +464,14 @@ ECO.Renderer = {
         this._roundRect(ctx, w / 2 - btnW / 2, y1, btnW, btnH, 10);
         ctx.fill();
         ctx.fillStyle = '#FFF';
-        ctx.font = 'bold 18px sans-serif';
-        ctx.fillText('♾ Бесконечный режим', w / 2, y1 + btnH / 2);
+        ctx.font = 'bold 16px sans-serif';
+        ctx.fillText('\u267E Бесконечный режим', w / 2, y1 + btnH / 2);
 
         ctx.fillStyle = '#2196F3';
         this._roundRect(ctx, w / 2 - btnW / 2, y2, btnW, btnH, 10);
         ctx.fill();
         ctx.fillStyle = '#FFF';
-        ctx.fillText('🔄 Начать заново', w / 2, y2 + btnH / 2);
+        ctx.fillText('\uD83D\uDD04 Начать заново', w / 2, y2 + btnH / 2);
 
         this._endlessBtn = { x: w / 2 - btnW / 2, y: y1, w: btnW, h: btnH };
         this._restartBtn = { x: w / 2 - btnW / 2, y: y2, w: btnW, h: btnH };

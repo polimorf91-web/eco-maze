@@ -819,16 +819,8 @@ ECO.Themes = {
     },
 
     generateDecoMap: function(grid, cols, rows, theme) {
-        var decoMap = {};
-        var key = function(x, y) { return x + ',' + y; };
-        for (var y = 0; y < rows; y++) {
-            for (var x = 0; x < cols; x++) {
-                if (grid[y][x] === 0 && Math.random() < theme.decoChance) {
-                    decoMap[key(x, y)] = true;
-                }
-            }
-        }
-        return decoMap;
+        // Декорации убраны с пола — они путают игроков
+        return {};
     },
 
     // Генерация карты спецтайлов для уровня

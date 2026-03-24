@@ -20,6 +20,7 @@ ECO.Entities = {
             frame: 0,
             frameTimer: 0,
             _wallBlockedDir: 0,
+            _bufferedDir: 0,
             _onSpecialTile: false,
             _iceSliding: false,
 
@@ -35,6 +36,12 @@ ECO.Entities = {
 
                 // Движение
                 if (this.moving) {
+                    // Буферизация ввода: запомнить направление для поворота
+                    var inputDir = ECO.Input.direction;
+                    if (inputDir !== ECO.Config.DIR.NONE && inputDir !== this.direction) {
+                        this._bufferedDir = inputDir;
+                    }
+
                     var moveSpeed = this.speed;
                     // Спецтайлы влияют на скорость
                     if (this._onSpecialTile === 'slow') {
@@ -80,6 +87,23 @@ ECO.Entities = {
                                 this._iceSliding = true;
                             }
                         }
+
+                        // Потребить буфер: попробовать повернуть сразу
+                        if (this._bufferedDir && this._bufferedDir !== ECO.Config.DIR.NONE && !this._iceSliding) {
+                            var bNext = ECO.Collision.getNextTile(this.tileX, this.tileY, this._bufferedDir);
+                            if (ECO.Collision.canMoveTo(grid, bNext.x, bNext.y)) {
+                                this.direction = this._bufferedDir;
+                                this.targetTileX = bNext.x;
+                                this.targetTileY = bNext.y;
+                                this.moving = true;
+                                this.moveProgress = 0;
+                                this._stuckTimer = 0;
+                                this._wallBlockedDir = 0;
+                                this._bumpDir = 0;
+                                this._bumpTimer = 0;
+                            }
+                            this._bufferedDir = 0;
+                        }
                     }
                 }
 
@@ -100,6 +124,7 @@ ECO.Entities = {
                 }
 
                 if (!this.moving && !this._iceSliding) {
+                    this._bufferedDir = 0;
                     var dir = ECO.Input.direction;
                     if (dir !== ECO.Config.DIR.NONE) {
                         if (dir === this._wallBlockedDir) {
@@ -156,7 +181,13 @@ ECO.Entities = {
             },
 
             draw: function(ctx, x, y, ts) {
-                ECO.Sprites.drawGirl(ctx, x, y, ts, this.direction, this.bagSize, this.frame, this.hasShield, ECO.Game.selectedSkin || 0);
+                var skinIdx = ECO.Game.selectedSkin || 0;
+                var skin = ECO.Config.SKINS[skinIdx] || ECO.Config.SKINS[0];
+                if (skin.gender === 'boy') {
+                    ECO.Sprites.drawBoy(ctx, x, y, ts, this.direction, this.bagSize, this.frame, this.hasShield, skinIdx);
+                } else {
+                    ECO.Sprites.drawGirl(ctx, x, y, ts, this.direction, this.bagSize, this.frame, this.hasShield, skinIdx);
+                }
             }
         };
     },
@@ -280,9 +311,11 @@ ECO.Entities = {
                 var ts = ECO.Renderer.tileSize;
                 if (!this.frozen) this.frame++;
 
-                // Пересчёт пути
+                // Пересчёт пути (чаще вблизи игрока)
                 this.pathTimer += dt;
-                if (this.pathTimer >= ECO.Config.RAT_PATH_UPDATE_MS) {
+                var dist = Math.abs(this.tileX - playerTileX) + Math.abs(this.tileY - playerTileY);
+                var interval = dist <= 2 ? 50 : ECO.Config.RAT_PATH_UPDATE_MS;
+                if (this.pathTimer >= interval) {
                     this.pathTimer = 0;
                     ECO.AI.updateRatPath(this, playerTileX, playerTileY, grid);
                 }
@@ -330,7 +363,7 @@ ECO.Entities = {
         };
     },
 
-    // Котик-последователь (бегает за девочкой)
+    // Котик-охотник (бежит к крысам и убивает их)
     createCatFollower: function(tileX, tileY, homeTileX, homeTileY) {
         return {
             type: 'cat_follower',
@@ -348,23 +381,79 @@ ECO.Entities = {
             moveProgress: 0,
             path: [],
             pathTimer: 0,
-            state: 'following', // following, returning, sleeping
+            state: 'hunting', // hunting, returning, sleeping
+            targetRat: null,
             timer: ECO.Config.CAT_FREEZE_DURATION,
             frame: 0,
+
+            _findNearestRat: function() {
+                var entities = ECO.Game.entities;
+                var minDist = Infinity;
+                var nearest = null;
+                for (var i = 0; i < entities.length; i++) {
+                    var e = entities[i];
+                    if (e.type === 'rat' && e.active && !e.frozen) {
+                        var d = Math.abs(e.tileX - this.tileX) + Math.abs(e.tileY - this.tileY);
+                        if (d < minDist) {
+                            minDist = d;
+                            nearest = e;
+                        }
+                    }
+                }
+                return nearest;
+            },
 
             update: function(dt, grid, playerTileX, playerTileY) {
                 var ts = ECO.Renderer.tileSize;
                 this.frame++;
 
-                if (this.state === 'following') {
+                if (this.state === 'hunting') {
                     this.timer -= dt;
                     if (this.timer <= 0) {
+                        this.state = 'returning';
+                        this.path = [];
+                        this.targetRat = null;
+                    }
+                }
+
+                // Найти цель
+                if (this.state === 'hunting') {
+                    if (!this.targetRat || !this.targetRat.active) {
+                        this.targetRat = this._findNearestRat();
+                        this.path = [];
+                    }
+                    if (!this.targetRat) {
                         this.state = 'returning';
                         this.path = [];
                     }
                 }
 
-                ECO.AI.moveCatFollower(this, playerTileX, playerTileY, grid, dt);
+                // Определить координаты цели
+                var targetX, targetY;
+                if (this.state === 'hunting' && this.targetRat) {
+                    targetX = this.targetRat.tileX;
+                    targetY = this.targetRat.tileY;
+                } else {
+                    targetX = this.homeTileX;
+                    targetY = this.homeTileY;
+                }
+
+                ECO.AI.moveCatFollower(this, targetX, targetY, grid, dt);
+
+                // Проверка: кот поймал крысу?
+                if (this.state === 'hunting' && this.targetRat && this.targetRat.active) {
+                    if (this.tileX === this.targetRat.tileX && this.tileY === this.targetRat.tileY) {
+                        this.targetRat.active = false;
+                        ECO.Animations.spawnConfetti(this.targetRat.pixelX + ts / 2, this.targetRat.pixelY, 15);
+                        ECO.Animations.spawnFloatingText(
+                            this.targetRat.pixelX + ts / 2, this.targetRat.pixelY,
+                            'Мяу!', '#FF9800'
+                        );
+                        ECO.Audio.playPickup();
+                        this.targetRat = null;
+                        this.path = [];
+                    }
+                }
 
                 // Пиксельная позиция
                 if (this.moving) {

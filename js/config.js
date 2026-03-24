@@ -84,11 +84,12 @@ ECO.Config = {
 
     // Скины персонажа
     SKINS: [
-        { name: 'Маша', hair: '#5D4037', hairBase: '#4E342E', dress: '#4CAF50', dressAccent: '#388E3C', ribbon: '#E91E63', shoes: '#5D4037' },
-        { name: 'Алиса', hair: '#FFD54F', hairBase: '#FFC107', dress: '#E91E63', dressAccent: '#C2185B', ribbon: '#9C27B0', shoes: '#4E342E' },
-        { name: 'Лиза', hair: '#D84315', hairBase: '#BF360C', dress: '#2196F3', dressAccent: '#1565C0', ribbon: '#FF9800', shoes: '#3E2723' },
-        { name: 'Соня', hair: '#212121', hairBase: '#111', dress: '#FF9800', dressAccent: '#E65100', ribbon: '#4CAF50', shoes: '#37474F' },
-        { name: 'Ника', hair: '#8D6E63', hairBase: '#6D4C41', dress: '#9C27B0', dressAccent: '#7B1FA2', ribbon: '#FFEB3B', shoes: '#4E342E' }
+        { name: 'Маша', gender: 'girl', hair: '#5D4037', hairBase: '#4E342E', dress: '#4CAF50', dressAccent: '#388E3C', ribbon: '#E91E63', shoes: '#5D4037' },
+        { name: 'Алиса', gender: 'girl', hair: '#FFD54F', hairBase: '#FFC107', dress: '#E91E63', dressAccent: '#C2185B', ribbon: '#9C27B0', shoes: '#4E342E' },
+        { name: 'Лиза', gender: 'girl', hair: '#D84315', hairBase: '#BF360C', dress: '#2196F3', dressAccent: '#1565C0', ribbon: '#FF9800', shoes: '#3E2723' },
+        { name: 'Коля', gender: 'boy', hair: '#5D4037', hairBase: '#4E342E', shirt: '#2196F3', shirtAccent: '#1565C0', pants: '#37474F', shoes: '#5D4037' },
+        { name: 'Дима', gender: 'boy', hair: '#212121', hairBase: '#111', shirt: '#4CAF50', shirtAccent: '#388E3C', pants: '#455A64', shoes: '#3E2723' },
+        { name: 'Саша', gender: 'boy', hair: '#8D6E63', hairBase: '#6D4C41', shirt: '#FF9800', shirtAccent: '#E65100', pants: '#546E7A', shoes: '#4E342E' }
     ],
 
     // Состояния игры

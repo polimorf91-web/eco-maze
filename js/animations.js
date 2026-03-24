@@ -90,6 +90,30 @@ ECO.Animations = {
         }
     },
 
+    // Фейерверк (взрыв частиц по кругу)
+    spawnFirework: function(x, y) {
+        var colors = ['#FF1744', '#FFEB3B', '#00E676', '#2979FF', '#D500F9', '#FF9100'];
+        var color = ECO.Utils.randomChoice(colors);
+        var count = 20;
+        for (var i = 0; i < count; i++) {
+            var angle = (Math.PI * 2 / count) * i;
+            var speed = 100 + Math.random() * 80;
+            var lifeVal = 800 + Math.random() * 500;
+            this.particles.push({
+                x: x, y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                gravity: 60,
+                size: 3 + Math.random() * 2,
+                color: color,
+                shape: 'rect',
+                life: lifeVal,
+                maxLife: lifeVal,
+                alpha: 1
+            });
+        }
+    },
+
     // Капли воды при поливе цветка
     spawnWaterDrops: function(x, y) {
         for (var i = 0; i < 8; i++) {

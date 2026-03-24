@@ -228,12 +228,15 @@ ECO.Game = {
             ECO.Animations.spawnWaterDrops(this.player.pixelX + ts / 2, this.player.pixelY);
         }
         if (this.wateringTimer <= 0) {
-            this.player.hasShield = true;
+            // Цветок замораживает крыс
+            this.freezeTimer = ECO.Config.CAT_FREEZE_DURATION;
+            this._freezeRats();
             this.state = 'playing';
+            ECO.Audio.playFreeze();
             ECO.Animations.spawnFloatingText(
                 this.player.pixelX + ECO.Renderer.tileSize / 2,
                 this.player.pixelY,
-                '🛡 Щит!', '#4CAF50'
+                '❄ Заморозка!', '#42A5F5'
             );
         }
     },
@@ -248,6 +251,14 @@ ECO.Game = {
             if (!e.active || e === player) continue;
 
             if (!ECO.Collision.overlapPixel(player, e, threshold)) continue;
+
+            // Для крыс: дополнительная тайловая проверка (ловит случаи когда pixel overlap промахивается)
+            if (e.type === 'rat' && !e.frozen) {
+                if (player.tileX === e.tileX && player.tileY === e.tileY) {
+                    this._hitByRat(e);
+                    continue;
+                }
+            }
 
             switch (e.type) {
                 case 'trash':
@@ -389,22 +400,18 @@ ECO.Game = {
     _collectCat: function(catPowerup) {
         catPowerup.active = false;
 
-        // Создать котика-последователя
+        // Создать котика-охотника (бежит к крысам)
         var follower = ECO.Entities.createCatFollower(
             this.player.tileX, this.player.tileY,
             catPowerup.tileX, catPowerup.tileY
         );
         this.entities.push(follower);
 
-        // Заморозить крыс
-        this.freezeTimer = ECO.Config.CAT_FREEZE_DURATION;
-        this._freezeRats();
-
-        ECO.Audio.playFreeze();
+        ECO.Audio.playPickup();
         ECO.Animations.spawnFloatingText(
             this.player.pixelX + ECO.Renderer.tileSize / 2,
             this.player.pixelY,
-            '❄ Заморозка!', '#42A5F5'
+            '🐱 Охота!', '#FF9800'
         );
     },
 
@@ -420,13 +427,6 @@ ECO.Game = {
         for (var i = 0; i < this.entities.length; i++) {
             if (this.entities[i].type === 'rat') {
                 this.entities[i].frozen = false;
-            }
-        }
-        // Отправить котика домой
-        for (var j = 0; j < this.entities.length; j++) {
-            if (this.entities[j].type === 'cat_follower' && this.entities[j].state === 'following') {
-                this.entities[j].state = 'returning';
-                this.entities[j].path = [];
             }
         }
     },
@@ -512,6 +512,7 @@ ECO.Game = {
     // ========= Управление уровнями =========
 
     startGame: function(endless) {
+        ECO.Renderer._victoryStarted = false;
         this.endless = endless || false;
         this.level = 1;
         this.totalTime = 0;
