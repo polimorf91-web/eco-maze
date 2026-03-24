@@ -311,6 +311,19 @@ ECO.Entities = {
                 var ts = ECO.Renderer.tileSize;
                 if (!this.frozen) this.frame++;
 
+                // Детекция застревания: если крыса не двигается > 800мс
+                if (!this.frozen && !this.moving) {
+                    this._ratStuck = (this._ratStuck || 0) + dt;
+                    if (this._ratStuck > 800) {
+                        this._ratStuck = 0;
+                        this.path = [];
+                        this._pendingPath = null;
+                        this.pathTimer = 9999; // форсировать пересчёт
+                    }
+                } else {
+                    this._ratStuck = 0;
+                }
+
                 // Пересчёт пути (чаще вблизи игрока)
                 this.pathTimer += dt;
                 var dist = Math.abs(this.tileX - playerTileX) + Math.abs(this.tileY - playerTileY);
