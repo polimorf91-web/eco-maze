@@ -205,12 +205,6 @@ ECO.Renderer = {
             ctx.fillText(statuses.join('  |  '), this.width / 2, pad + fontSize + 4);
         }
 
-        // DEBUG: счётчик кадров (если loop замирает — число перестанет расти)
-        ctx.textAlign = 'left';
-        ctx.font = '10px monospace';
-        ctx.fillStyle = 'rgba(255,255,0,0.6)';
-        ctx.fillText('F:' + (game._frameCount || 0), 4, 40);
-
         // Комбо текст
         if (game.comboCount >= 2) {
             ctx.textAlign = 'center';

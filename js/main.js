@@ -81,7 +81,6 @@ ECO.Game = {
         });
 
         this._lastTime = performance.now();
-        this._frameCount = 0;
         var self = this;
 
         // Единая функция обновления — вызывается из любого источника
@@ -90,8 +89,6 @@ ECO.Game = {
             var dt = now - self._lastTime;
             if (dt < 4) return; // слишком часто — пропустить
             self._lastTime = now;
-            self._frameCount++;
-
             try {
                 if (!document.hidden) {
                     if (dt > 200) dt = 16;
