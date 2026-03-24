@@ -7,11 +7,37 @@ ECO.Renderer = {
     decoMap: null,
     trailMap: null,
 
+    _menuTime: 0,
+    _cursorX: 0,
+    _cursorY: 0,
+
     init: function(canvas) {
         this.canvas = canvas;
         this.ctx = canvas.getContext('2d');
         this.trailMap = {};
         this.resize();
+
+        // Трекинг курсора/тапа для глаз ведёрка
+        var self = this;
+        canvas.addEventListener('mousemove', function(e) {
+            var rect = canvas.getBoundingClientRect();
+            self._cursorX = e.clientX - rect.left;
+            self._cursorY = e.clientY - rect.top;
+        });
+        canvas.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 0) {
+                var rect = canvas.getBoundingClientRect();
+                self._cursorX = e.touches[0].clientX - rect.left;
+                self._cursorY = e.touches[0].clientY - rect.top;
+            }
+        }, { passive: true });
+        canvas.addEventListener('touchmove', function(e) {
+            if (e.touches.length > 0) {
+                var rect = canvas.getBoundingClientRect();
+                self._cursorX = e.touches[0].clientX - rect.left;
+                self._cursorY = e.touches[0].clientY - rect.top;
+            }
+        }, { passive: true });
     },
 
     resize: function() {
@@ -232,13 +258,67 @@ ECO.Renderer = {
         ctx.textBaseline = 'middle';
         ctx.fillText('🌿 Эко-Лабиринт', w / 2, h * 0.12);
 
-        // Маскот Ведёрко (слева) + Девочка (справа)
-        ECO.Sprites.drawBucket(ctx, w / 2 - 80, h * 0.18, 65, false, 0);
+        // Маскот Ведёрко (большое, с машущей рукой) + Персонаж (справа)
+        this._menuTime += 16;
+        var bucketSize = 100;
+        var bucketX = w / 2 - bucketSize - 5;
+        var bucketY = h * 0.15;
+        var bucketCX = bucketX + bucketSize / 2;
+        var bucketCY = bucketY + bucketSize / 2;
+
+        // Угол от ведёрка к курсору (для глаз)
+        var eyeAngle = Math.atan2(this._cursorY - bucketCY, this._cursorX - bucketCX);
+        ECO.Sprites.drawBucket(ctx, bucketX, bucketY, bucketSize, false, eyeAngle);
+
+        // Машущая мультяшная ручка
+        ctx.save();
+        var armX = bucketCX + bucketSize * 0.32;
+        var armY = bucketCY + bucketSize * 0.05;
+        ctx.translate(armX, armY);
+        var waveAngle = Math.sin(this._menuTime / 250) * 0.4 - 0.3;
+        ctx.rotate(waveAngle);
+
+        var armLen = bucketSize * 0.3;
+        var armW = bucketSize * 0.08;
+        // Рука
+        ctx.fillStyle = '#FFCC80';
+        ctx.strokeStyle = '#E0A050';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(armLen * 0.5, 0, armLen * 0.5, armW, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Ладошка
+        ctx.beginPath();
+        ctx.arc(armLen, 0, armW * 1.3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        // Пальчики
+        var fingerLen = armW * 1.0;
+        var fingerW = armW * 0.35;
+        for (var fi = -1; fi <= 1; fi++) {
+            ctx.save();
+            ctx.translate(armLen, 0);
+            ctx.rotate(fi * 0.35);
+            ctx.beginPath();
+            ctx.ellipse(fingerLen * 0.7, 0, fingerLen, fingerW, 0, 0, Math.PI * 2);
+            ctx.fillStyle = '#FFCC80';
+            ctx.fill();
+            ctx.strokeStyle = '#E0A050';
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            ctx.restore();
+        }
+        ctx.restore();
+
+        // Персонаж (справа от ведёрка)
         var menuSkin = ECO.Config.SKINS[skinIdx] || ECO.Config.SKINS[0];
+        var charX = w / 2 + 15;
+        var charY = bucketY + (bucketSize - 65) / 2;
         if (menuSkin.gender === 'boy') {
-            ECO.Sprites.drawBoy(ctx, w / 2 + 15, h * 0.18, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
+            ECO.Sprites.drawBoy(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
         } else {
-            ECO.Sprites.drawGirl(ctx, w / 2 + 15, h * 0.18, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
+            ECO.Sprites.drawGirl(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
         }
 
         // Описание
@@ -273,7 +353,7 @@ ECO.Renderer = {
         ctx.fillText('▶', arrowRX + arrowS / 2, arrowY + arrowS / 2);
 
         // Имя скина
-        ctx.fillStyle = skin.dress;
+        ctx.fillStyle = skin.dress || skin.shirt;
         ctx.font = 'bold 18px sans-serif';
         ctx.fillText(skin.name, w / 2, arrowY + arrowS / 2);
 
