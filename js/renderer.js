@@ -270,45 +270,22 @@ ECO.Renderer = {
         var eyeAngle = Math.atan2(this._cursorY - bucketCY, this._cursorX - bucketCX);
         ECO.Sprites.drawBucket(ctx, bucketX, bucketY, bucketSize, false, eyeAngle);
 
-        // Машущая мультяшная ручка
+        // Машущая рука-палочка
         ctx.save();
         var armX = bucketCX + bucketSize * 0.32;
         var armY = bucketCY + bucketSize * 0.05;
         ctx.translate(armX, armY);
-        var waveAngle = Math.sin(this._menuTime / 250) * 0.4 - 0.3;
+        var waveAngle = Math.sin(this._menuTime / 250) * 0.5 - 0.3;
         ctx.rotate(waveAngle);
 
-        var armLen = bucketSize * 0.3;
-        var armW = bucketSize * 0.08;
-        // Рука
-        ctx.fillStyle = '#FFCC80';
-        ctx.strokeStyle = '#E0A050';
-        ctx.lineWidth = 1.5;
+        var armLen = bucketSize * 0.35;
+        ctx.strokeStyle = '#8D6E63';
+        ctx.lineWidth = 3;
+        ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.ellipse(armLen * 0.5, 0, armLen * 0.5, armW, 0, 0, Math.PI * 2);
-        ctx.fill();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(armLen, 0);
         ctx.stroke();
-        // Ладошка
-        ctx.beginPath();
-        ctx.arc(armLen, 0, armW * 1.3, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        // Пальчики
-        var fingerLen = armW * 1.0;
-        var fingerW = armW * 0.35;
-        for (var fi = -1; fi <= 1; fi++) {
-            ctx.save();
-            ctx.translate(armLen, 0);
-            ctx.rotate(fi * 0.35);
-            ctx.beginPath();
-            ctx.ellipse(fingerLen * 0.7, 0, fingerLen, fingerW, 0, 0, Math.PI * 2);
-            ctx.fillStyle = '#FFCC80';
-            ctx.fill();
-            ctx.strokeStyle = '#E0A050';
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-            ctx.restore();
-        }
         ctx.restore();
 
         // Персонаж (справа от ведёрка)
