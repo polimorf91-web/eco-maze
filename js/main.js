@@ -541,6 +541,8 @@ ECO.Game = {
     },
 
     _loadLevel: function() {
+        var key = function(x, y) { return x + ',' + y; };
+
         var levelDef = ECO.Levels.get(this.level, this.endless);
         this.theme = ECO.Themes.getRandom();
         this._themeIndex = ECO.Themes._lastIndex;
@@ -576,10 +578,6 @@ ECO.Game = {
 
         // Выход
         var exit = ECO.Entities.createExit(mazeDef.exit.x, mazeDef.exit.y);
-        this.entities.push(exit);
-
-        // Занятые позиции
-        var key = function(x, y) { return x + ',' + y; };
         var occupied = {};
         occupied[key(mazeDef.spawn.x, mazeDef.spawn.y)] = true;
         occupied[key(mazeDef.bucket.x, mazeDef.bucket.y)] = true;
