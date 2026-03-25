@@ -1,114 +1,103 @@
-// ECO.AI — патфайндинг крыс и поведение котика
+// ECO.AI — поведение крыс (Pac-Man ghost style) и котика
 ECO.AI = {
-    // Обновить путь крысы к игроку
-    updateRatPath: function(rat, playerTileX, playerTileY, grid) {
-        if (rat.frozen) return;
-        // Сохранить позицию игрока для прямого преследования
-        rat._targetPlayerX = playerTileX;
-        rat._targetPlayerY = playerTileY;
-        // Считать путь от точки назначения (если в движении) чтобы не телепортироваться
-        var fromX = rat.moving ? rat.targetTileX : rat.tileX;
-        var fromY = rat.moving ? rat.targetTileY : rat.tileY;
-        rat._pendingPath = ECO.Utils.bfs(grid, fromX, fromY, playerTileX, playerTileY);
-        // Применить сразу если не в движении
-        if (!rat.moving) {
-            rat.path = rat._pendingPath;
-            rat._pendingPath = null;
+    // Направления: приоритет при тай-брейке (UP > LEFT > DOWN > RIGHT)
+    _DIRS: [
+        { dir: 1, dx: 0, dy: -1 },  // UP
+        { dir: 3, dx: -1, dy: 0 },  // LEFT
+        { dir: 2, dx: 0, dy: 1 },   // DOWN
+        { dir: 4, dx: 1, dy: 0 }    // RIGHT
+    ],
+
+    // Противоположное направление (для запрета разворота)
+    _reverse: function(dir) {
+        switch (dir) {
+            case 1: return 2; // UP → DOWN
+            case 2: return 1; // DOWN → UP
+            case 3: return 4; // LEFT → RIGHT
+            case 4: return 3; // RIGHT → LEFT
+            default: return 0;
         }
     },
 
-    // Прямое преследование на коротких дистанциях (без BFS)
-    _ratDirectStep: function(rat, grid) {
-        var px = rat._targetPlayerX;
-        var py = rat._targetPlayerY;
-        if (px === undefined) return null;
-        var dx = px - rat.tileX;
-        var dy = py - rat.tileY;
-        var dist = Math.abs(dx) + Math.abs(dy);
-        if (dist === 0) return [];
-        if (dist === 1) return [{ x: px, y: py }];
-        // 2 тайла — попробовать шаг в нужном направлении
-        if (dist === 2) {
-            var steps = [];
-            if (dx !== 0) steps.push({ x: rat.tileX + (dx > 0 ? 1 : -1), y: rat.tileY });
-            if (dy !== 0) steps.push({ x: rat.tileX, y: rat.tileY + (dy > 0 ? 1 : -1) });
-            for (var i = 0; i < steps.length; i++) {
-                if (ECO.Collision.canMoveTo(grid, steps[i].x, steps[i].y)) {
-                    return [steps[i]];
-                }
+    // === КРЫСА: Pac-Man ghost AI ===
+    // На каждом тайле выбирает направление, минимизирующее расстояние до цели.
+    // Никогда не разворачивается (кроме тупиков). Никогда не останавливается.
+    chooseRatDirection: function(rat, targetX, targetY, grid) {
+        var reverse = this._reverse(rat.direction);
+        var bestDir = 0;
+        var bestDist = Infinity;
+        var options = 0;
+
+        for (var i = 0; i < this._DIRS.length; i++) {
+            var d = this._DIRS[i];
+            var nx = rat.tileX + d.dx;
+            var ny = rat.tileY + d.dy;
+
+            // Пропустить стены
+            if (!ECO.Collision.canMoveTo(grid, nx, ny)) continue;
+
+            // Пропустить разворот (кроме тупика)
+            if (d.dir === reverse) {
+                options++; // считаем как доступный, но пропускаем
+                continue;
+            }
+
+            options++;
+
+            // Евклидово расстояние до цели
+            var ddx = nx - targetX;
+            var ddy = ny - targetY;
+            var dist = ddx * ddx + ddy * ddy; // без sqrt — для сравнения не нужен
+
+            if (dist < bestDist) {
+                bestDist = dist;
+                bestDir = d.dir;
             }
         }
-        return null; // слишком далеко — использовать BFS
+
+        // Тупик: разрешить разворот
+        if (bestDir === 0) {
+            bestDir = reverse;
+        }
+
+        return bestDir;
     },
 
-    // Двигать крысу по пути
-    moveRat: function(rat, dt, grid, speed) {
+    // Полный апдейт крысы за кадр
+    updateRat: function(rat, dt, grid, playerTileX, playerTileY) {
         if (rat.frozen) return;
 
-        // Fallback: если путь пуст и не в движении — попробовать прямой шаг или случайный ход
-        if ((!rat.path || rat.path.length === 0) && !rat.moving) {
-            var direct = this._ratDirectStep(rat, grid);
-            if (direct && direct.length > 0) {
-                rat.path = direct;
-            } else {
-                // Случайный шаг — выбрать любое свободное соседнее поле
-                var dirs = [[0,-1],[0,1],[-1,0],[1,0]];
-                var shuffled = dirs.sort(function() { return Math.random() - 0.5; });
-                for (var ri = 0; ri < shuffled.length; ri++) {
-                    var nx = rat.tileX + shuffled[ri][0];
-                    var ny = rat.tileY + shuffled[ri][1];
-                    if (ECO.Collision.canMoveTo(grid, nx, ny)) {
-                        rat.path = [{ x: nx, y: ny }];
-                        break;
-                    }
-                }
-                if (!rat.path || rat.path.length === 0) return;
-            }
-        }
-        if (!rat.path || rat.path.length === 0) return;
+        var speed = rat.speed;
 
+        // Если не в движении — выбрать направление и начать двигаться
         if (!rat.moving) {
-            var next = rat.path[0];
-            // Проверить что шаг на соседнюю клетку (не телепорт)
-            var dx = Math.abs(next.x - rat.tileX);
-            var dy = Math.abs(next.y - rat.tileY);
-            if ((dx + dy) !== 1 || !ECO.Collision.canMoveTo(grid, next.x, next.y)) {
-                // Путь устарел — немедленно пересчитать через BFS
-                rat.path = [];
-                rat.pathTimer = 9999; // форсировать пересчёт в следующем update
-                // Попробовать прямой шаг или случайный ход
-                var fallback = this._ratDirectStep(rat, grid);
-                if (fallback && fallback.length > 0) {
-                    rat.path = fallback;
-                } else {
-                    // Случайный шаг
-                    var fdirs = [[0,-1],[0,1],[-1,0],[1,0]];
-                    var fshuf = fdirs.sort(function() { return Math.random() - 0.5; });
-                    for (var fi = 0; fi < fshuf.length; fi++) {
-                        var fnx = rat.tileX + fshuf[fi][0];
-                        var fny = rat.tileY + fshuf[fi][1];
-                        if (ECO.Collision.canMoveTo(grid, fnx, fny)) {
-                            rat.path = [{ x: fnx, y: fny }];
-                            break;
-                        }
-                    }
-                    if (!rat.path || rat.path.length === 0) return;
+            var dir = this.chooseRatDirection(rat, playerTileX, playerTileY, grid);
+            if (dir === 0) return; // нет хода (невозможно в связном лабиринте)
+
+            // Найти смещение для выбранного направления
+            var dx = 0, dy = 0;
+            for (var i = 0; i < this._DIRS.length; i++) {
+                if (this._DIRS[i].dir === dir) {
+                    dx = this._DIRS[i].dx;
+                    dy = this._DIRS[i].dy;
+                    break;
                 }
-                next = rat.path[0];
             }
-            rat.targetTileX = next.x;
-            rat.targetTileY = next.y;
+
+            var nx = rat.tileX + dx;
+            var ny = rat.tileY + dy;
+
+            // Финальная проверка (на всякий случай)
+            if (!ECO.Collision.canMoveTo(grid, nx, ny)) return;
+
+            rat.targetTileX = nx;
+            rat.targetTileY = ny;
+            rat.direction = dir;
             rat.moving = true;
             rat.moveProgress = 0;
-            rat.path.shift();
-            // Обновить направление спрайта
-            var DIR = ECO.Config.DIR;
-            if (next.x > rat.tileX) rat.direction = DIR.RIGHT;
-            else if (next.x < rat.tileX) rat.direction = DIR.LEFT;
-            else if (next.y > rat.tileY) rat.direction = DIR.DOWN;
-            else if (next.y < rat.tileY) rat.direction = DIR.UP;
         }
 
+        // Продвижение по тайлу
         if (rat.moving) {
             rat.moveProgress += speed * dt / 1000;
             if (rat.moveProgress >= 1) {
@@ -116,16 +105,13 @@ ECO.AI = {
                 rat.tileY = rat.targetTileY;
                 rat.moving = false;
                 rat.moveProgress = 0;
-                // Применить отложенный путь (пересчитанный во время движения)
-                if (rat._pendingPath) {
-                    rat.path = rat._pendingPath;
-                    rat._pendingPath = null;
-                }
+                // Сразу выбрать следующее направление (непрерывное движение)
+                // Это делается на следующем кадре через !rat.moving выше
             }
         }
     },
 
-    // Котик следует за игроком
+    // === КОТИК: BFS-based pathfinding (оставляем как есть) ===
     moveCatFollower: function(cat, playerTileX, playerTileY, grid, dt) {
         if (cat.state === 'sleeping') return;
 
@@ -144,7 +130,7 @@ ECO.AI = {
             return;
         }
 
-        // Пересчёт пути — от точки назначения если в движении
+        // Пересчёт пути
         cat.pathTimer = (cat.pathTimer || 0) + dt;
         if (cat.pathTimer > 300 || !cat.path || cat.path.length === 0) {
             cat.pathTimer = 0;
@@ -175,14 +161,13 @@ ECO.AI = {
                 cat.moving = true;
                 cat.moveProgress = 0;
                 cat.path.shift();
-                // Обновить направление спрайта
                 var DIR = ECO.Config.DIR;
                 if (next.x > cat.tileX) cat.direction = DIR.RIGHT;
                 else if (next.x < cat.tileX) cat.direction = DIR.LEFT;
                 else if (next.y > cat.tileY) cat.direction = DIR.DOWN;
                 else if (next.y < cat.tileY) cat.direction = DIR.UP;
             } else {
-                cat.path = []; // путь устарел
+                cat.path = [];
             }
         }
 
@@ -193,12 +178,10 @@ ECO.AI = {
                 cat.tileY = cat.targetTileY;
                 cat.moving = false;
                 cat.moveProgress = 0;
-                // Применить отложенный путь
                 if (cat._pendingPath) {
                     cat.path = cat._pendingPath;
                     cat._pendingPath = null;
                 }
-                // Проверка: вернулся домой?
                 if (cat.state === 'returning' && cat.tileX === cat.homeTileX && cat.tileY === cat.homeTileY) {
                     cat.state = 'sleeping';
                 }

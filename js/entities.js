@@ -287,7 +287,7 @@ ECO.Entities = {
         };
     },
 
-    // Крыса
+    // Крыса (Pac-Man ghost AI — жадный выбор направления на каждом тайле)
     createRat: function(tileX, tileY, speedMult) {
         return {
             type: 'rat',
@@ -303,40 +303,16 @@ ECO.Entities = {
             direction: ECO.Config.DIR.DOWN,
             speed: ECO.Config.RAT_BASE_SPEED * (speedMult || 1),
             frozen: false,
-            path: [],
-            pathTimer: 99999, // сразу пересчитать путь на первом кадре
             frame: 0,
 
             update: function(dt, grid, playerTileX, playerTileY) {
                 var ts = ECO.Renderer.tileSize;
                 if (!this.frozen) this.frame++;
 
-                // Детекция застревания: если крыса не двигается > 800мс
-                if (!this.frozen && !this.moving) {
-                    this._ratStuck = (this._ratStuck || 0) + dt;
-                    if (this._ratStuck > 800) {
-                        this._ratStuck = 0;
-                        this.path = [];
-                        this._pendingPath = null;
-                        this.pathTimer = 9999; // форсировать пересчёт
-                    }
-                } else {
-                    this._ratStuck = 0;
-                }
+                // Вся логика движения — в ECO.AI.updateRat (Pac-Man style)
+                ECO.AI.updateRat(this, dt, grid, playerTileX, playerTileY);
 
-                // Пересчёт пути (чаще вблизи игрока)
-                this.pathTimer += dt;
-                var dist = Math.abs(this.tileX - playerTileX) + Math.abs(this.tileY - playerTileY);
-                var interval = dist <= 2 ? 50 : ECO.Config.RAT_PATH_UPDATE_MS;
-                if (this.pathTimer >= interval) {
-                    this.pathTimer = 0;
-                    ECO.AI.updateRatPath(this, playerTileX, playerTileY, grid);
-                }
-
-                // Движение
-                ECO.AI.moveRat(this, dt, grid, this.speed);
-
-                // Пиксельная позиция
+                // Пиксельная позиция (интерполяция)
                 if (this.moving) {
                     this.pixelX = ECO.Utils.lerp(this.tileX * ts, this.targetTileX * ts, this.moveProgress);
                     this.pixelY = ECO.Utils.lerp(this.tileY * ts, this.targetTileY * ts, this.moveProgress);

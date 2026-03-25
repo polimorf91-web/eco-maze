@@ -250,15 +250,20 @@ ECO.Game = {
             var e = this.entities[i];
             if (!e.active || e === player) continue;
 
-            if (!ECO.Collision.overlapPixel(player, e, threshold)) continue;
-
-            // Для крыс: дополнительная тайловая проверка (ловит случаи когда pixel overlap промахивается)
+            // Крысы: проверяем и тайловое совпадение, и пиксельное перекрытие (любое из двух)
             if (e.type === 'rat' && !e.frozen) {
-                if (player.tileX === e.tileX && player.tileY === e.tileY) {
+                var sameTile = (player.tileX === e.tileX && player.tileY === e.tileY) ||
+                               (player.tileX === e.targetTileX && player.tileY === e.targetTileY) ||
+                               (player.targetTileX === e.tileX && player.targetTileY === e.tileY);
+                var pixelClose = ECO.Collision.overlapPixel(player, e, threshold);
+                if (sameTile || pixelClose) {
                     this._hitByRat(e);
                     continue;
                 }
+                continue; // не попал — пропускаем switch
             }
+
+            if (!ECO.Collision.overlapPixel(player, e, threshold)) continue;
 
             switch (e.type) {
                 case 'trash':
