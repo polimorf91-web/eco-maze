@@ -219,10 +219,16 @@ ECO.Renderer = {
 
         // Название локации (под основной панелью)
         if (game.theme && game.theme.name) {
+            var locIcons = {
+                'Город': '🏙️', 'Деревня': '🏡', 'Центр': '🏛️', 'Мегаполис': '🌆',
+                'Пустыня': '🏜️', 'Зима': '❄️', 'Квартира': '🏠', 'Парк': '🌳',
+                'Пляж': '🏖️', 'Школа': '🏫', 'Лес': '🌲', 'Площадка': '🎪'
+            };
+            var locIcon = locIcons[game.theme.name] || '📍';
             ctx.textAlign = 'center';
-            ctx.font = '13px sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
-            ctx.fillText('📍 ' + game.theme.name, this.width / 2, 48);
+            ctx.font = 'bold 15px sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.7)';
+            ctx.fillText(locIcon + ' ' + game.theme.name, this.width / 2, 48);
         }
 
         // Вторая строка: статусы
