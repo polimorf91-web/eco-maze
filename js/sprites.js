@@ -1,7 +1,6 @@
 // ECO.Sprites — процедурная отрисовка всех спрайтов на Canvas
 ECO.Sprites = {
-    // Анимированный спрайт-шит девочки чиби (4 направления x 4 кадра, сетка 4x4)
-    // Ряды: 0=DOWN, 1=UP, 2=RIGHT, 3=LEFT. Столбцы: 4 кадра анимации бега.
+    // Спрайт-шит девочки чиби (4 ракурса в сетке 2x2)
     _chibiImg: null,
     _chibiLoaded: false,
     // Спрайт ведёрка чиби
@@ -11,19 +10,23 @@ ECO.Sprites = {
         var self = this;
         this._chibiImg = new Image();
         this._chibiImg.onload = function() { self._chibiLoaded = true; };
-        this._chibiImg.src = 'chibi_spritesheet.png';
+        this._chibiImg.src = 'девочка чиби.png';
 
         this._bucketImg = new Image();
         this._bucketImg.onload = function() { self._bucketLoaded = true; };
         this._bucketImg.src = 'bucket_chibi.png';
     },
 
-    // Отрисовка анимированного персонажа из спрайт-шита
+    // Отрисовка персонажа из спрайт-шита (статичный 2x2)
     drawChibiPlayer: function(ctx, x, y, size, direction, bagSize, frame, hasShield) {
         var s = size;
         var cx = x + s / 2;
         var cy = y + s / 2;
         var DIR = ECO.Config.DIR;
+
+        // Покачивание при ходьбе
+        var walking = (direction !== DIR.NONE);
+        var bounce = walking ? Math.sin(frame * 0.6) * s * 0.02 : 0;
 
         ctx.save();
 
@@ -49,34 +52,27 @@ ECO.Sprites = {
         }
 
         var img = this._chibiImg;
-        var frameSize = img.naturalWidth / 4; // 4 столбца
+        var iw = img.naturalWidth / 2;
+        var ih = img.naturalHeight / 2;
 
-        // Ряд по направлению: 0=DOWN, 1=UP, 2=RIGHT, 3=LEFT
-        var row = 0;
+        // Выбрать квадрант по направлению
+        var sx = 0, sy = 0;
         switch (direction) {
-            case DIR.DOWN:  row = 0; break;
-            case DIR.UP:    row = 1; break;
-            case DIR.RIGHT: row = 2; break;
-            case DIR.LEFT:  row = 3; break;
-            default:        row = 0; break;
+            case DIR.DOWN:  sx = 0; sy = 0; break;
+            case DIR.UP:    sx = iw; sy = 0; break;
+            case DIR.LEFT:  sx = iw; sy = ih; break;
+            case DIR.RIGHT: sx = 0; sy = ih; break;
+            default:        sx = 0; sy = 0; break;
         }
 
-        // Кадр анимации (0-3), переключение по frame counter
-        var animFrame = (Math.floor(frame / 2)) % 4;
-        // Если стоит — показать кадр 0 (idle)
-        if (direction === DIR.NONE) animFrame = 0;
-
-        var sx = animFrame * frameSize;
-        var sy = row * frameSize;
-
-        // Рисуем чуть крупнее тайла
+        // Рисуем с покачиванием, чуть крупнее тайла
         var drawSize = s * 1.1;
         var dx = cx - drawSize / 2;
-        var dy = cy - drawSize / 2 - s * 0.05;
+        var dy = cy - drawSize / 2 + bounce - s * 0.05;
 
-        ctx.drawImage(img, sx, sy, frameSize, frameSize, dx, dy, drawSize, drawSize);
+        ctx.drawImage(img, sx, sy, iw, ih, dx, dy, drawSize, drawSize);
 
-        // Индикатор мусора
+        // Индикатор мусора в руках
         if (bagSize > 0) {
             ctx.fillStyle = '#795548';
             ctx.font = 'bold ' + Math.round(s * 0.25) + 'px sans-serif';
@@ -507,17 +503,32 @@ ECO.Sprites = {
         var s = size;
         var cx = x + s / 2;
         var cy = y + s / 2;
+        var now = Date.now();
 
         ctx.save();
 
+        // Покачивание — ведёрко «дышит» и слегка качается
+        var sway = Math.sin(now / 800) * 0.04;   // лёгкий наклон
+        var breathe = Math.sin(now / 1200) * s * 0.01; // дыхание (вертикальное)
+
+        ctx.translate(cx, cy);
+        ctx.rotate(sway);
+        ctx.translate(-cx, -cy);
+
         if (this._bucketLoaded && this._bucketImg) {
-            var drawSize = s * 1.15;
+            var drawSize = s * 0.95; // чуть меньше
             var dx = cx - drawSize / 2;
-            var dy = cy - drawSize / 2 - s * 0.05;
+            var dy = cy - drawSize / 2 - s * 0.03 + breathe;
+
+            // Осветление: рисуем картинку, потом полупрозрачный белый слой поверх
             ctx.drawImage(this._bucketImg, dx, dy, drawSize, drawSize);
+            ctx.globalAlpha = 0.15;
+            ctx.fillStyle = '#FFFFFF';
+            ctx.fillRect(dx, dy, drawSize, drawSize);
+            ctx.globalAlpha = 1.0;
         } else {
-            // Fallback пока картинка грузится
-            ctx.fillStyle = '#9E9E9E';
+            // Fallback
+            ctx.fillStyle = '#BDBDBD';
             ctx.fillRect(x + s * 0.2, y + s * 0.2, s * 0.6, s * 0.6);
             ctx.fillStyle = '#333';
             ctx.beginPath();
