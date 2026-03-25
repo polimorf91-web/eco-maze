@@ -327,39 +327,13 @@ ECO.Renderer = {
         ctx.fillStyle = '#555';
         ctx.fillText('Собери мусор и спаси природу!', w / 2, h * 0.4);
 
-        // Выбор скина
-        var skinY = h * 0.46;
-        ctx.font = '14px sans-serif';
-        ctx.fillStyle = '#333';
-        ctx.fillText('Персонаж:', w / 2, skinY);
-
-        // Стрелка влево
-        var arrowS = 36;
-        var arrowLX = w / 2 - 80;
-        var arrowRX = w / 2 + 80 - arrowS;
-        var arrowY = skinY + 8;
-
-        ctx.fillStyle = '#81C784';
-        this._roundRect(ctx, arrowLX, arrowY, arrowS, arrowS, 8);
-        ctx.fill();
-        ctx.fillStyle = '#FFF';
-        ctx.font = 'bold 20px sans-serif';
-        ctx.fillText('◀', arrowLX + arrowS / 2, arrowY + arrowS / 2);
-
-        // Стрелка вправо
-        ctx.fillStyle = '#81C784';
-        this._roundRect(ctx, arrowRX, arrowY, arrowS, arrowS, 8);
-        ctx.fill();
-        ctx.fillStyle = '#FFF';
-        ctx.fillText('▶', arrowRX + arrowS / 2, arrowY + arrowS / 2);
-
-        // Имя скина
-        ctx.fillStyle = skin.dress || skin.shirt;
+        // Имя персонажа
+        ctx.fillStyle = skin.dress || '#4CAF50';
         ctx.font = 'bold 18px sans-serif';
-        ctx.fillText(skin.name, w / 2, arrowY + arrowS / 2);
+        ctx.fillText(skin.name, w / 2, h * 0.47);
 
-        this._skinLeftBtn = { x: arrowLX, y: arrowY, w: arrowS, h: arrowS };
-        this._skinRightBtn = { x: arrowRX, y: arrowY, w: arrowS, h: arrowS };
+        this._skinLeftBtn = null;
+        this._skinRightBtn = null;
 
         // Счётчик
         if (totalTrashCollected > 0) {
