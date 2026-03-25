@@ -250,17 +250,12 @@ ECO.Game = {
             var e = this.entities[i];
             if (!e.active || e === player) continue;
 
-            // Крысы: проверяем и тайловое совпадение, и пиксельное перекрытие (любое из двух)
+            // Крысы: только пиксельное перекрытие с жёстким порогом
             if (e.type === 'rat' && !e.frozen) {
-                var sameTile = (player.tileX === e.tileX && player.tileY === e.tileY) ||
-                               (player.tileX === e.targetTileX && player.tileY === e.targetTileY) ||
-                               (player.targetTileX === e.tileX && player.targetTileY === e.tileY);
-                var pixelClose = ECO.Collision.overlapPixel(player, e, threshold);
-                if (sameTile || pixelClose) {
+                if (ECO.Collision.overlapPixel(player, e, ts * 0.35)) {
                     this._hitByRat(e);
-                    continue;
                 }
-                continue; // не попал — пропускаем switch
+                continue;
             }
 
             if (!ECO.Collision.overlapPixel(player, e, threshold)) continue;
