@@ -18,6 +18,7 @@ ECO.Config = {
     // Котик
     CAT_FREEZE_DURATION: 8000,    // 8 сек заморозка (цветок)
     CAT_LIFETIME: 12000,          // 12 сек жизнь кота-охотника
+    CAT_HUNT_RADIUS: 6,           // макс. дистанция охоты (Manhattan tiles)
     CAT_FOLLOW_SPEED: 5.0,        // скорость следования
     CAT_RETURN_SPEED: 5.0,        // скорость возврата
 

@@ -260,12 +260,38 @@ ECO.Entities = {
                 if (this.bounceTimer > 0) {
                     this.bounceTimer -= dt;
                 }
+                // Непрерывный bounce когда весь мусор собран
+                this._callTimer = (this._callTimer || 0) + dt;
+                if (ECO.Game && ECO.Game.trashCollected >= ECO.Game.trashTotal && !this.isFull) {
+                    this._calling = true;
+                } else {
+                    this._calling = false;
+                }
             },
 
             draw: function(ctx, x, y, ts) {
                 var bounceY = 0;
                 if (this.bounceTimer > 0) {
                     bounceY = -Math.sin(this.bounceTimer / 300 * Math.PI) * 5;
+                }
+                // Активный призыв: пульсирующее свечение + прыжки
+                if (this._calling) {
+                    var t = (this._callTimer || 0) / 400;
+                    bounceY = -Math.abs(Math.sin(t * 2)) * 6;
+                    // Зелёное свечение
+                    var glowR = ts * 0.7 + Math.sin(t) * ts * 0.1;
+                    ctx.save();
+                    var grd = ctx.createRadialGradient(
+                        x + ts / 2, y + ts / 2 + bounceY, ts * 0.15,
+                        x + ts / 2, y + ts / 2 + bounceY, glowR
+                    );
+                    grd.addColorStop(0, 'rgba(76, 175, 80, 0.35)');
+                    grd.addColorStop(1, 'rgba(76, 175, 80, 0)');
+                    ctx.fillStyle = grd;
+                    ctx.beginPath();
+                    ctx.arc(x + ts / 2, y + ts / 2 + bounceY, glowR, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
                 }
                 var playerAngle = 0;
                 if (ECO.Game && ECO.Game.player) {
@@ -399,11 +425,12 @@ ECO.Entities = {
                 var entities = ECO.Game.entities;
                 var minDist = Infinity;
                 var nearest = null;
+                var maxRange = ECO.Config.CAT_HUNT_RADIUS;
                 for (var i = 0; i < entities.length; i++) {
                     var e = entities[i];
                     if (e.type === 'rat' && e.active && !e.frozen) {
                         var d = Math.abs(e.tileX - this.tileX) + Math.abs(e.tileY - this.tileY);
-                        if (d < minDist) {
+                        if (d <= maxRange && d < minDist) {
                             minDist = d;
                             nearest = e;
                         }
@@ -416,10 +443,22 @@ ECO.Entities = {
                 var ts = ECO.Renderer.tileSize;
                 this.frame++;
 
+                // Спящий кот — не двигается, только рисуется
+                if (this.state === 'sleeping') {
+                    this.pixelX = this.tileX * ts;
+                    this.pixelY = this.tileY * ts;
+                    this._sleepTimer = (this._sleepTimer || 0) + dt;
+                    return;
+                }
+
                 // Таймер жизни кота
                 this.timer -= dt;
                 if (this.timer <= 0) {
-                    this.active = false;
+                    this.state = 'sleeping';
+                    this._sleepTimer = 0;
+                    this.moving = false;
+                    this.path = [];
+                    this.targetRat = null;
                     ECO.Animations.spawnFloatingText(
                         this.pixelX + ts / 2, this.pixelY,
                         '😴 Zzz...', '#90A4AE'
@@ -494,6 +533,26 @@ ECO.Entities = {
             },
 
             draw: function(ctx, x, y, ts) {
+                if (this.state === 'sleeping') {
+                    // Спящий кот: уменьшенный, слегка наклонённый
+                    ctx.save();
+                    ctx.translate(x + ts / 2, y + ts / 2);
+                    ctx.rotate(0.3);
+                    ctx.globalAlpha = 0.7;
+                    ECO.Sprites.drawCat(ctx, -ts * 0.35, -ts * 0.35, ts * 0.7, 0, false);
+                    ctx.restore();
+                    // ZZZ анимация
+                    var t = (this._sleepTimer || 0) / 600;
+                    var zx = x + ts * 0.7;
+                    var zy = y - 2 - Math.sin(t) * 4;
+                    ctx.font = 'bold ' + Math.round(ts * 0.25) + 'px Arial';
+                    ctx.fillStyle = '#90A4AE';
+                    ctx.globalAlpha = 0.6 + 0.3 * Math.sin(t * 1.5);
+                    ctx.fillText('z', zx, zy);
+                    ctx.fillText('Z', zx + ts * 0.15, zy - ts * 0.15);
+                    ctx.globalAlpha = 1;
+                    return;
+                }
                 ECO.Sprites.drawCat(ctx, x, y, ts, this.frame, false);
             }
         };

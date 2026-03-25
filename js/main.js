@@ -167,8 +167,9 @@ ECO.Game = {
                 }
             } else if (e.type === 'cat_follower') {
                 e.update(physicsDt, this.maze.grid, this.player.tileX, this.player.tileY);
-            } else if (e.type === 'bucket' && e._hintCooldown > 0) {
-                e._hintCooldown -= physicsDt;
+            } else if (e.type === 'bucket') {
+                if (e._hintCooldown > 0) e._hintCooldown -= physicsDt;
+                e.update(physicsDt);
             } else if (e.update) {
                 e.update(physicsDt);
             }
@@ -351,6 +352,40 @@ ECO.Game = {
 
         ECO.Audio.playPickup();
 
+        // Реакция ведёрка на подбор мусора
+        var bucket = null;
+        for (var bi = 0; bi < this.entities.length; bi++) {
+            if (this.entities[bi].type === 'bucket' && this.entities[bi].active) {
+                bucket = this.entities[bi];
+                break;
+            }
+        }
+        if (bucket) {
+            var ts2 = ECO.Renderer.tileSize;
+            var remaining = this.trashTotal - this.trashCollected;
+            if (remaining === 0) {
+                // Весь мусор собран — ведёрко зовёт!
+                bucket.bounceTimer = 600;
+                ECO.Animations.spawnFloatingText(
+                    bucket.pixelX + ts2 / 2, bucket.pixelY - ts2 * 0.3,
+                    'Неси сюда!', '#4CAF50'
+                );
+            } else if (remaining <= 3) {
+                bucket.bounceTimer = 300;
+                ECO.Animations.spawnFloatingText(
+                    bucket.pixelX + ts2 / 2, bucket.pixelY - ts2 * 0.3,
+                    'Ещё ' + remaining + '!', '#FFB300'
+                );
+            } else if (this.trashCollected === 1) {
+                // Первый мусор — подсказка
+                bucket.bounceTimer = 300;
+                ECO.Animations.spawnFloatingText(
+                    bucket.pixelX + ts2 / 2, bucket.pixelY - ts2 * 0.3,
+                    'Собери всё!', '#90CAF9'
+                );
+            }
+        }
+
         // Сохранить
         try { localStorage.setItem('eco_total_trash', this.totalTrashCollected); } catch(e) {}
     },
@@ -358,14 +393,14 @@ ECO.Game = {
     _depositTrash: function(bucket) {
         if (this.trashCollected < this.trashTotal) {
             var remaining = this.trashTotal - this.trashCollected;
-            if (remaining <= 3 && !bucket._hintCooldown) {
+            if (!bucket._hintCooldown) {
                 bucket.bounceTimer = 400;
                 ECO.Animations.spawnFloatingText(
                     bucket.pixelX + ECO.Renderer.tileSize / 2,
                     bucket.pixelY - ECO.Renderer.tileSize * 0.3,
                     'Собери ещё ' + remaining + '!', '#FFB300'
                 );
-                bucket._hintCooldown = 2000; // не спамить
+                bucket._hintCooldown = 3000;
             }
             return;
         }

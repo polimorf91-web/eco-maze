@@ -180,12 +180,15 @@ ECO.Renderer = {
             }
         }
 
-        // Стрелка компаса (если активен)
+        // Стрелка компаса (если активен) — перед девочкой, не поверх
         if (game.compassActive && game.nearestTrash) {
             var player = game.player;
-            var ppx = player.pixelX - cam.x + ts / 2;
-            var ppy = player.pixelY - cam.y + ts / 2;
+            var cx = player.pixelX - cam.x + ts / 2;
+            var cy = player.pixelY - cam.y + ts / 2;
             var angle = ECO.Utils.angleTo(player.pixelX, player.pixelY, game.nearestTrash.pixelX, game.nearestTrash.pixelY);
+            var offset = ts * 0.75;
+            var ppx = cx + Math.cos(angle) * offset;
+            var ppy = cy + Math.sin(angle) * offset;
             ECO.Sprites.drawCompassArrow(ctx, ppx, ppy, angle, ts * 0.4);
         }
 
