@@ -111,24 +111,9 @@ ECO.AI = {
         }
     },
 
-    // === КОТИК: BFS-based pathfinding (оставляем как есть) ===
-    moveCatFollower: function(cat, playerTileX, playerTileY, grid, dt) {
-        if (cat.state === 'sleeping') return;
-
-        var targetX, targetY;
-        var speed;
-
-        if (cat.state === 'hunting' || cat.state === 'following') {
-            targetX = playerTileX;
-            targetY = playerTileY;
-            speed = ECO.Config.CAT_FOLLOW_SPEED;
-        } else if (cat.state === 'returning') {
-            targetX = cat.homeTileX;
-            targetY = cat.homeTileY;
-            speed = ECO.Config.CAT_RETURN_SPEED;
-        } else {
-            return;
-        }
+    // === КОТИК: BFS к цели (крыса или игрок) ===
+    moveCatFollower: function(cat, targetX, targetY, grid, dt) {
+        var speed = ECO.Config.CAT_FOLLOW_SPEED;
 
         // Пересчёт пути
         cat.pathTimer = (cat.pathTimer || 0) + dt;
@@ -144,12 +129,7 @@ ECO.AI = {
             }
         }
 
-        if ((!cat.path || cat.path.length === 0) && !cat.moving) {
-            if (cat.state === 'returning') {
-                cat.state = 'sleeping';
-            }
-            return;
-        }
+        if ((!cat.path || cat.path.length === 0) && !cat.moving) return;
 
         if (!cat.moving && cat.path && cat.path.length > 0) {
             var next = cat.path[0];
@@ -181,9 +161,6 @@ ECO.AI = {
                 if (cat._pendingPath) {
                     cat.path = cat._pendingPath;
                     cat._pendingPath = null;
-                }
-                if (cat.state === 'returning' && cat.tileX === cat.homeTileX && cat.tileY === cat.homeTileY) {
-                    cat.state = 'sleeping';
                 }
             }
         }

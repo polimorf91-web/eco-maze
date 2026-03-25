@@ -370,9 +370,10 @@ ECO.Entities = {
             moveProgress: 0,
             path: [],
             pathTimer: 0,
-            state: 'hunting', // hunting, returning, sleeping
+            state: 'following', // hunting (гонится за крысой), following (идёт за игроком)
             targetRat: null,
             timer: ECO.Config.CAT_FREEZE_DURATION,
+            _scanTimer: 0, // таймер поиска крыс
             frame: 0,
 
             _findNearestRat: function() {
@@ -396,25 +397,42 @@ ECO.Entities = {
                 var ts = ECO.Renderer.tileSize;
                 this.frame++;
 
-                if (this.state === 'hunting') {
-                    this.timer -= dt;
-                    if (this.timer <= 0) {
-                        this.state = 'returning';
-                        this.path = [];
+                // Таймер жизни кота
+                this.timer -= dt;
+                if (this.timer <= 0) {
+                    this.active = false;
+                    ECO.Animations.spawnFloatingText(
+                        this.pixelX + ts / 2, this.pixelY,
+                        'Пока!', '#FF9800'
+                    );
+                    return;
+                }
+
+                // Периодически искать крыс (каждые 300мс)
+                this._scanTimer = (this._scanTimer || 0) + dt;
+                if (this._scanTimer > 300) {
+                    this._scanTimer = 0;
+                    var rat = this._findNearestRat();
+                    if (rat) {
+                        // Нашёл крысу — переключиться на охоту
+                        if (this.state !== 'hunting' || this.targetRat !== rat) {
+                            this.targetRat = rat;
+                            this.state = 'hunting';
+                            this.path = [];
+                        }
+                    } else if (this.state === 'hunting') {
+                        // Крыс нет — вернуться к игроку
+                        this.state = 'following';
                         this.targetRat = null;
+                        this.path = [];
                     }
                 }
 
-                // Найти цель
-                if (this.state === 'hunting') {
-                    if (!this.targetRat || !this.targetRat.active) {
-                        this.targetRat = this._findNearestRat();
-                        this.path = [];
-                    }
-                    if (!this.targetRat) {
-                        this.state = 'returning';
-                        this.path = [];
-                    }
+                // Если текущая цель охоты умерла — сбросить
+                if (this.state === 'hunting' && this.targetRat && !this.targetRat.active) {
+                    this.targetRat = null;
+                    this.state = 'following';
+                    this.path = [];
                 }
 
                 // Определить координаты цели
@@ -423,8 +441,9 @@ ECO.Entities = {
                     targetX = this.targetRat.tileX;
                     targetY = this.targetRat.tileY;
                 } else {
-                    targetX = this.homeTileX;
-                    targetY = this.homeTileY;
+                    // Идти за игроком
+                    targetX = playerTileX;
+                    targetY = playerTileY;
                 }
 
                 ECO.AI.moveCatFollower(this, targetX, targetY, grid, dt);
@@ -440,6 +459,7 @@ ECO.Entities = {
                         );
                         ECO.Audio.playPickup();
                         this.targetRat = null;
+                        this.state = 'following';
                         this.path = [];
                     }
                 }
@@ -455,7 +475,7 @@ ECO.Entities = {
             },
 
             draw: function(ctx, x, y, ts) {
-                ECO.Sprites.drawCat(ctx, x, y, ts, this.frame, this.state === 'sleeping');
+                ECO.Sprites.drawCat(ctx, x, y, ts, this.frame, false);
             }
         };
     },
