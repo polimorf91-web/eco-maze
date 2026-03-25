@@ -507,9 +507,9 @@ ECO.Sprites = {
 
         ctx.save();
 
-        // Покачивание — ведёрко «дышит» и слегка качается
-        var sway = Math.sin(now / 800) * 0.04;   // лёгкий наклон
-        var breathe = Math.sin(now / 1200) * s * 0.01; // дыхание (вертикальное)
+        // Покачивание — ведёрко «дышит» и качается
+        var sway = Math.sin(now / 600) * 0.12;    // заметный наклон
+        var breathe = Math.sin(now / 900) * s * 0.03; // дыхание (вертикальное подпрыгивание)
 
         ctx.translate(cx, cy);
         ctx.rotate(sway);
