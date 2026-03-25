@@ -1,5 +1,83 @@
 // ECO.Sprites — процедурная отрисовка всех спрайтов на Canvas
 ECO.Sprites = {
+    // Спрайт-шит девочки чиби (4 ракурса в сетке 2x2)
+    _chibiImg: null,
+    _chibiLoaded: false,
+    initChibi: function() {
+        var self = this;
+        this._chibiImg = new Image();
+        this._chibiImg.onload = function() { self._chibiLoaded = true; };
+        this._chibiImg.src = 'девочка чиби.png';
+    },
+
+    // Отрисовка персонажа из спрайт-шита
+    // Раскладка: top-left=фронт(DOWN), top-right=спина(UP), bottom-left=LEFT, bottom-right=RIGHT
+    drawChibiPlayer: function(ctx, x, y, size, direction, bagSize, frame, hasShield) {
+        var s = size;
+        var cx = x + s / 2;
+        var cy = y + s / 2;
+        var DIR = ECO.Config.DIR;
+
+        // Покачивание при ходьбе
+        var walking = (direction !== DIR.NONE);
+        var bounce = walking ? Math.sin(frame * 0.6) * s * 0.02 : 0;
+
+        ctx.save();
+
+        // Щит
+        if (hasShield) {
+            var pulse = 0.2 + Math.sin(Date.now() / 400) * 0.1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, s * 0.52, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(76, 175, 80, ' + pulse + ')';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(56, 142, 60, 0.6)';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        }
+
+        if (!this._chibiLoaded || !this._chibiImg) {
+            // Fallback — простой круг пока картинка грузится
+            ctx.fillStyle = '#4CAF50';
+            ctx.beginPath();
+            ctx.arc(cx, cy, s * 0.35, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+            return;
+        }
+
+        var img = this._chibiImg;
+        var iw = img.naturalWidth / 2;
+        var ih = img.naturalHeight / 2;
+
+        // Выбрать квадрант по направлению
+        var sx = 0, sy = 0;
+        switch (direction) {
+            case DIR.DOWN:  sx = 0; sy = 0; break;    // фронт — top-left
+            case DIR.UP:    sx = iw; sy = 0; break;   // спина — top-right
+            case DIR.LEFT:  sx = 0; sy = ih; break;   // левый бок — bottom-left
+            case DIR.RIGHT: sx = iw; sy = ih; break;  // правый бок — bottom-right
+            default:        sx = 0; sy = 0; break;    // по умолчанию фронт
+        }
+
+        // Рисуем с покачиванием, чуть крупнее тайла для читаемости
+        var drawSize = s * 1.1;
+        var dx = cx - drawSize / 2;
+        var dy = cy - drawSize / 2 + bounce - s * 0.05;
+
+        ctx.drawImage(img, sx, sy, iw, ih, dx, dy, drawSize, drawSize);
+
+        // Индикатор мусора в руках
+        if (bagSize > 0) {
+            ctx.fillStyle = '#795548';
+            ctx.font = 'bold ' + Math.round(s * 0.25) + 'px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(bagSize + '', x + s * 0.95, y + s * 0.25);
+        }
+
+        ctx.restore();
+    },
+
     // Девочка-школьница (чиби-стиль: большая голова, выразительные глаза)
     drawGirl: function(ctx, x, y, size, direction, bagSize, frame, hasShield, skinIndex) {
         var s = size;

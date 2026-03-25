@@ -43,6 +43,7 @@ ECO.Game = {
         ECO.Input.init();
         ECO.Audio.init();
         ECO.Facts.init();
+        ECO.Sprites.initChibi();
         this._initLegend();
 
         // Загрузить сохранённые данные

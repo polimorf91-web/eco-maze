@@ -314,7 +314,9 @@ ECO.Renderer = {
         var menuSkin = ECO.Config.SKINS[skinIdx] || ECO.Config.SKINS[0];
         var charX = w / 2 + 15;
         var charY = bucketY + (bucketSize - 65) / 2;
-        if (menuSkin.gender === 'boy') {
+        if (menuSkin.type === 'chibi') {
+            ECO.Sprites.drawChibiPlayer(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false);
+        } else if (menuSkin.gender === 'boy') {
             ECO.Sprites.drawBoy(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
         } else {
             ECO.Sprites.drawGirl(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);

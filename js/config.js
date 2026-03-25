@@ -84,6 +84,7 @@ ECO.Config = {
 
     // Скины персонажа
     SKINS: [
+        { name: 'Эко', type: 'chibi', gender: 'girl', dress: '#4CAF50' },
         { name: 'Маша', gender: 'girl', hair: '#5D4037', hairBase: '#4E342E', dress: '#4CAF50', dressAccent: '#388E3C', ribbon: '#E91E63', shoes: '#5D4037' },
         { name: 'Алиса', gender: 'girl', hair: '#FFD54F', hairBase: '#FFC107', dress: '#E91E63', dressAccent: '#C2185B', ribbon: '#9C27B0', shoes: '#4E342E' },
         { name: 'Лиза', gender: 'girl', hair: '#D84315', hairBase: '#BF360C', dress: '#2196F3', dressAccent: '#1565C0', ribbon: '#FF9800', shoes: '#3E2723' },

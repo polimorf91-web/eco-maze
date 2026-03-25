@@ -183,7 +183,9 @@ ECO.Entities = {
             draw: function(ctx, x, y, ts) {
                 var skinIdx = ECO.Game.selectedSkin || 0;
                 var skin = ECO.Config.SKINS[skinIdx] || ECO.Config.SKINS[0];
-                if (skin.gender === 'boy') {
+                if (skin.type === 'chibi') {
+                    ECO.Sprites.drawChibiPlayer(ctx, x, y, ts, this.direction, this.bagSize, this.frame, this.hasShield);
+                } else if (skin.gender === 'boy') {
                     ECO.Sprites.drawBoy(ctx, x, y, ts, this.direction, this.bagSize, this.frame, this.hasShield, skinIdx);
                 } else {
                     ECO.Sprites.drawGirl(ctx, x, y, ts, this.direction, this.bagSize, this.frame, this.hasShield, skinIdx);
