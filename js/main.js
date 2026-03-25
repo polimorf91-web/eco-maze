@@ -669,7 +669,7 @@ ECO.Game = {
 
         // Показывать подсказку спецтайла только в игре
         if (!this._stBar) this._stBar = document.getElementById('special-tile-bar');
-        if (this._stBar) this._stBar.style.display = (this.state === 'playing' || this.state === 'watering') ? 'flex' : 'none';
+        if (this._stBar) this._stBar.style.display = (this.state !== 'menu' && this.state !== 'victory') ? 'flex' : 'none';
 
         switch (this.state) {
             case 'menu':
@@ -765,11 +765,28 @@ ECO.Game = {
 
         if (this.theme && this.theme.specialTile) {
             var st = this.theme.specialTile;
-            var icons = { 'slow': '🐌', 'boost': '⚡', 'ice': '🧊' };
             var effects = { 'slow': 'замедляет', 'boost': 'ускоряет', 'ice': 'скольжение' };
-            hint.textContent = (icons[st.type] || '✦') + ' ' + st.name + ' — ' + (effects[st.type] || st.type);
+
+            // Рисуем спрайт спецтайла на мини-canvas
+            var iconCanvas = document.getElementById('special-tile-icon');
+            if (!iconCanvas) {
+                iconCanvas = document.createElement('canvas');
+                iconCanvas.id = 'special-tile-icon';
+                iconCanvas.width = 28;
+                iconCanvas.height = 28;
+                iconCanvas.style.cssText = 'vertical-align:middle;margin-right:6px;border-radius:4px;background:rgba(255,255,255,0.08);flex-shrink:0;';
+                bar.insertBefore(iconCanvas, hint);
+            }
+            var ictx = iconCanvas.getContext('2d');
+            ictx.clearRect(0, 0, 28, 28);
+            try { st.draw(ictx, 2, 2, 24); } catch(e) {}
+
+            hint.textContent = st.name + ' — ' + (effects[st.type] || st.type);
             bar.style.display = 'flex';
         } else {
+            // Убираем иконку если нет спецтайла
+            var oldIcon = document.getElementById('special-tile-icon');
+            if (oldIcon) oldIcon.parentNode.removeChild(oldIcon);
             bar.style.display = 'none';
         }
     },
