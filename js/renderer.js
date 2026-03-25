@@ -217,6 +217,14 @@ ECO.Renderer = {
         var levelText = game.endless ? 'Ур. ' + game.level + ' ∞' : 'Ур. ' + game.level + '/' + ECO.Config.STORY_LEVELS;
         ctx.fillText(levelText, this.width - pad, pad);
 
+        // Название локации (под основной панелью)
+        if (game.theme && game.theme.name) {
+            ctx.textAlign = 'center';
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.fillText('📍 ' + game.theme.name, this.width / 2, 48);
+        }
+
         // Вторая строка: статусы
         var statuses = [];
         if (game.player && game.player.hasShield) statuses.push('🛡 Щит');
@@ -236,7 +244,7 @@ ECO.Renderer = {
             ctx.textAlign = 'center';
             ctx.font = 'bold 24px sans-serif';
             ctx.fillStyle = '#FFEB3B';
-            ctx.fillText('Комбо x' + game.comboCount + '!', this.width / 2, 50);
+            ctx.fillText('Комбо x' + game.comboCount + '!', this.width / 2, 66);
         }
     },
 
@@ -275,11 +283,13 @@ ECO.Renderer = {
         var charSize = bucketSize;
         var charX = w / 2 + 5;
         var charY = bucketY;
-        // Тень под персонажем
-        ctx.fillStyle = 'rgba(0,0,0,0.12)';
-        ctx.beginPath();
-        ctx.ellipse(charX + charSize / 2, charY + charSize * 0.9, charSize * 0.25, charSize * 0.07, 0, 0, Math.PI * 2);
-        ctx.fill();
+        // Тень под персонажем (только для chibi — у процедурных спрайтов своя тень)
+        if (menuSkin.type === 'chibi') {
+            ctx.fillStyle = 'rgba(0,0,0,0.12)';
+            ctx.beginPath();
+            ctx.ellipse(charX + charSize / 2, charY + charSize * 0.9, charSize * 0.25, charSize * 0.07, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
         if (menuSkin.type === 'chibi') {
             ECO.Sprites.drawChibiPlayer(ctx, charX, charY, charSize, ECO.Config.DIR.DOWN, 0, 0, false);
         } else if (menuSkin.gender === 'boy') {
