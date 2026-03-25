@@ -347,12 +347,20 @@ ECO.Entities = {
             moveProgress: 0,
             direction: ECO.Config.DIR.DOWN,
             speed: ECO.Config.RAT_BASE_SPEED * (speedMult || 1),
+            _baseSpeed: ECO.Config.RAT_BASE_SPEED * (speedMult || 1),
+            _aliveTime: 0,
             frozen: false,
             frame: 0,
 
             update: function(dt, grid, playerTileX, playerTileY) {
                 var ts = ECO.Renderer.tileSize;
                 if (!this.frozen) this.frame++;
+
+                // Ускорение со временем: +10% каждые 30 сек
+                if (!this.frozen) {
+                    this._aliveTime += dt;
+                    this.speed = this._baseSpeed * (1 + this._aliveTime / 30000 * 0.1);
+                }
 
                 // Вся логика движения — в ECO.AI.updateRat (Pac-Man style)
                 ECO.AI.updateRat(this, dt, grid, playerTileX, playerTileY);
