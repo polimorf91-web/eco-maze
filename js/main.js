@@ -48,8 +48,10 @@ ECO.Game = {
 
         // Загрузить сохранённые данные
         try {
-            this.totalTrashCollected = parseInt(localStorage.getItem('eco_total_trash') || '0', 10);
-            this.selectedSkin = parseInt(localStorage.getItem('eco_skin') || '0', 10);
+            var t = parseInt(localStorage.getItem('eco_total_trash') || '0', 10);
+            var s = parseInt(localStorage.getItem('eco_skin') || '0', 10);
+            this.totalTrashCollected = isNaN(t) ? 0 : t;
+            this.selectedSkin = isNaN(s) ? 0 : s;
         } catch(e) {}
 
         this.state = 'menu';
@@ -120,7 +122,7 @@ ECO.Game = {
         if (this.state === 'playing') {
             this._updatePlaying(rawDt, physicsDt);
         } else if (this.state === 'watering') {
-            this._updateWatering(rawDt);
+            this._updateWatering(rawDt, physicsDt);
         } else if (this.state === 'level_complete') {
             this.levelCompleteTimer -= rawDt;
             if (this.levelCompleteTimer <= 0) {
@@ -214,8 +216,22 @@ ECO.Game = {
         this._checkCollisions();
     },
 
-    _updateWatering: function(rawDt) {
+    _updateWatering: function(rawDt, physicsDt) {
         this.wateringTimer -= rawDt;
+
+        // Крысы продолжают двигаться во время полива
+        for (var i = 0; i < this.entities.length; i++) {
+            var e = this.entities[i];
+            if (e.active && e.type === 'rat') {
+                e.update(physicsDt, this.maze.grid, this.player.tileX, this.player.tileY);
+                // Проверить коллизию крысы с игроком
+                if (!e.frozen && ECO.Collision.overlapPixel(this.player, e, ECO.Renderer.tileSize * 0.35)) {
+                    this._hitByRat(e);
+                    return;
+                }
+            }
+        }
+
         // Анимация капель
         if (Math.random() < 0.3) {
             var ts = ECO.Renderer.tileSize;
@@ -560,6 +576,7 @@ ECO.Game = {
         this._updateSpecialTileHint();
 
         this.entities = [];
+        ECO.Animations.clear();
 
         // Игрок
         this.player = ECO.Entities.createPlayer(mazeDef.spawn.x, mazeDef.spawn.y);

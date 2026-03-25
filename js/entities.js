@@ -109,16 +109,33 @@ ECO.Entities = {
 
                 if (!this.moving) {
                     // Лёд: автоматически скользить в текущем направлении
+                    // Но если игрок нажал другое направление — прервать скольжение
                     if (this._iceSliding && this.direction !== ECO.Config.DIR.NONE) {
-                        var iceNext = ECO.Collision.getNextTile(this.tileX, this.tileY, this.direction);
-                        if (ECO.Collision.canMoveTo(grid, iceNext.x, iceNext.y)) {
-                            this.targetTileX = iceNext.x;
-                            this.targetTileY = iceNext.y;
-                            this.moving = true;
-                            this.moveProgress = 0;
-                            this._stuckTimer = 0;
-                        } else {
-                            this._iceSliding = false; // Стена — стоп
+                        var inputDir = ECO.Input.direction;
+                        if (inputDir !== ECO.Config.DIR.NONE && inputDir !== this.direction) {
+                            // Игрок хочет повернуть — прервать лёд
+                            var turnNext = ECO.Collision.getNextTile(this.tileX, this.tileY, inputDir);
+                            if (ECO.Collision.canMoveTo(grid, turnNext.x, turnNext.y)) {
+                                this._iceSliding = false;
+                                this.direction = inputDir;
+                                this.targetTileX = turnNext.x;
+                                this.targetTileY = turnNext.y;
+                                this.moving = true;
+                                this.moveProgress = 0;
+                                this._stuckTimer = 0;
+                            }
+                        }
+                        if (this._iceSliding) {
+                            var iceNext = ECO.Collision.getNextTile(this.tileX, this.tileY, this.direction);
+                            if (ECO.Collision.canMoveTo(grid, iceNext.x, iceNext.y)) {
+                                this.targetTileX = iceNext.x;
+                                this.targetTileY = iceNext.y;
+                                this.moving = true;
+                                this.moveProgress = 0;
+                                this._stuckTimer = 0;
+                            } else {
+                                this._iceSliding = false; // Стена — стоп
+                            }
                         }
                     }
                 }
@@ -374,7 +391,7 @@ ECO.Entities = {
             pathTimer: 0,
             state: 'following', // hunting (гонится за крысой), following (идёт за игроком)
             targetRat: null,
-            timer: ECO.Config.CAT_FREEZE_DURATION,
+            timer: ECO.Config.CAT_LIFETIME,
             _scanTimer: 0, // таймер поиска крыс
             frame: 0,
 
@@ -398,6 +415,17 @@ ECO.Entities = {
             update: function(dt, grid, playerTileX, playerTileY) {
                 var ts = ECO.Renderer.tileSize;
                 this.frame++;
+
+                // Таймер жизни кота
+                this.timer -= dt;
+                if (this.timer <= 0) {
+                    this.active = false;
+                    ECO.Animations.spawnFloatingText(
+                        this.pixelX + ts / 2, this.pixelY,
+                        '😴 Zzz...', '#90A4AE'
+                    );
+                    return;
+                }
 
                 // Периодически искать крыс (каждые 300мс)
                 this._scanTimer = (this._scanTimer || 0) + dt;

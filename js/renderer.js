@@ -273,7 +273,7 @@ ECO.Renderer = {
         ctx.fillText('🌿 Эко-Лабиринт', w / 2, h * 0.12);
 
         // Маскот Ведёрко + Персонаж (справа)
-        this._menuTime += 16;
+        this._menuTime += (this._dt || 16);
         var bucketSize = 100;
         var bucketX = w / 2 - bucketSize - 5;
         var bucketY = h * 0.15;
@@ -435,10 +435,11 @@ ECO.Renderer = {
             ECO.Animations.spawnSideConfetti(w, h, 'right');
             ECO.Audio.playVictory();
         }
-        this._victoryTime += 16;
+        var vdt = this._dt || 16;
+        this._victoryTime += vdt;
 
         // Периодические конфетти с боков
-        this._nextSideConfetti -= 16;
+        this._nextSideConfetti -= vdt;
         if (this._nextSideConfetti <= 0) {
             this._nextSideConfetti = 2000 + Math.random() * 1000;
             ECO.Animations.spawnSideConfetti(w, h, Math.random() > 0.5 ? 'left' : 'right');

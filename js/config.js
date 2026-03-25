@@ -16,7 +16,8 @@ ECO.Config = {
     RAT_SPEED_SCALE_PER_LEVEL: 0.05, // +5% за уровень в бесконечном
 
     // Котик
-    CAT_FREEZE_DURATION: 15000,   // 15 сек заморозка
+    CAT_FREEZE_DURATION: 8000,    // 8 сек заморозка (цветок)
+    CAT_LIFETIME: 12000,          // 12 сек жизнь кота-охотника
     CAT_FOLLOW_SPEED: 5.0,        // скорость следования
     CAT_RETURN_SPEED: 5.0,        // скорость возврата
 

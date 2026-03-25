@@ -31,6 +31,8 @@ ECO.Input = {
             if (dir !== undefined) {
                 if (e.repeat) return;
                 e.preventDefault();
+                // Resume AudioContext on first user gesture (iOS fix)
+                if (ECO.Audio._resume) ECO.Audio._resume();
                 var k = e.code || e.key; // используем code как ключ (стабилен между раскладками)
                 self._pressed[k] = dir;
                 self.direction = dir;

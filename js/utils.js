@@ -34,6 +34,7 @@ ECO.Utils = {
         if (startX === goalX && startY === goalY) return [];
 
         var queue = [[startX, startY]];
+        var head = 0;
         var visited = {};
         var parent = {};
         var key = function(x, y) { return x + ',' + y; };
@@ -41,8 +42,8 @@ ECO.Utils = {
 
         var dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]];
 
-        while (queue.length > 0) {
-            var curr = queue.shift();
+        while (head < queue.length) {
+            var curr = queue[head++];
             var cx = curr[0], cy = curr[1];
 
             for (var d = 0; d < dirs.length; d++) {
@@ -81,11 +82,12 @@ ECO.Utils = {
         var dist = {};
         var key = function(x, y) { return x + ',' + y; };
         var queue = [[startX, startY, 0]];
+        var head = 0;
         dist[key(startX, startY)] = 0;
         var dirs = [[0, -1], [0, 1], [-1, 0], [1, 0]];
 
-        while (queue.length > 0) {
-            var curr = queue.shift();
+        while (head < queue.length) {
+            var curr = queue[head++];
             var cx = curr[0], cy = curr[1], cd = curr[2];
 
             for (var d = 0; d < dirs.length; d++) {
