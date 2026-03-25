@@ -356,10 +356,10 @@ ECO.Entities = {
                 var ts = ECO.Renderer.tileSize;
                 if (!this.frozen) this.frame++;
 
-                // Ускорение со временем: +10% каждые 30 сек
+                // Ускорение со временем: +20% за 30 сек (плавно)
                 if (!this.frozen) {
                     this._aliveTime += dt;
-                    this.speed = this._baseSpeed * (1 + this._aliveTime / 30000 * 0.1);
+                    this.speed = this._baseSpeed * (1 + this._aliveTime / 30000 * 0.2);
                 }
 
                 // Вся логика движения — в ECO.AI.updateRat (Pac-Man style)
