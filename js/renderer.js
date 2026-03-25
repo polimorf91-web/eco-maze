@@ -258,7 +258,7 @@ ECO.Renderer = {
         ctx.textBaseline = 'middle';
         ctx.fillText('🌿 Эко-Лабиринт', w / 2, h * 0.12);
 
-        // Маскот Ведёрко (большое, с машущей рукой) + Персонаж (справа)
+        // Маскот Ведёрко + Персонаж (справа)
         this._menuTime += 16;
         var bucketSize = 100;
         var bucketX = w / 2 - bucketSize - 5;
@@ -270,45 +270,6 @@ ECO.Renderer = {
         var eyeAngle = Math.atan2(this._cursorY - bucketCY, this._cursorX - bucketCX);
         ECO.Sprites.drawBucket(ctx, bucketX, bucketY, bucketSize, false, eyeAngle);
 
-        // Машущая рука-палочка с локтем и пальчиками
-        ctx.save();
-        var armX = bucketCX + bucketSize * 0.32;
-        var armY = bucketCY + bucketSize * 0.05;
-        ctx.translate(armX, armY);
-        var waveAngle = Math.sin(this._menuTime / 400) * 0.25 - 0.2;
-        ctx.rotate(waveAngle);
-
-        var seg1 = bucketSize * 0.2;  // плечо до локтя
-        var seg2 = bucketSize * 0.18; // локоть до кисти
-        ctx.strokeStyle = '#222';
-        ctx.lineWidth = 2.5;
-        ctx.lineCap = 'round';
-        // Плечо → локоть
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(seg1, 0);
-        ctx.stroke();
-        // Локоть → кисть (вверх под углом)
-        ctx.save();
-        ctx.translate(seg1, 0);
-        ctx.rotate(-0.9);
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.lineTo(seg2, 0);
-        ctx.stroke();
-        // Пальчики (два коротких)
-        var fLen = bucketSize * 0.06;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(seg2, 0);
-        ctx.lineTo(seg2 + fLen, -fLen * 0.5);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(seg2, 0);
-        ctx.lineTo(seg2 + fLen, fLen * 0.5);
-        ctx.stroke();
-        ctx.restore();
-        ctx.restore();
 
         // Персонаж (справа от ведёрка)
         var menuSkin = ECO.Config.SKINS[skinIdx] || ECO.Config.SKINS[0];
@@ -327,13 +288,27 @@ ECO.Renderer = {
         ctx.fillStyle = '#555';
         ctx.fillText('Собери мусор и спаси природу!', w / 2, h * 0.4);
 
-        // Имя персонажа
-        ctx.fillStyle = skin.dress || '#4CAF50';
-        ctx.font = 'bold 18px sans-serif';
-        ctx.fillText(skin.name, w / 2, h * 0.47);
+        // Выбор скина: стрелки + имя
+        var arrowY = h * 0.45;
+        var arrowSize = 28;
+        var nameX = w / 2;
 
-        this._skinLeftBtn = null;
-        this._skinRightBtn = null;
+        // Стрелка влево
+        ctx.fillStyle = '#4CAF50';
+        ctx.font = 'bold ' + arrowSize + 'px sans-serif';
+        ctx.fillText('◄', nameX - 80, arrowY);
+        this._skinLeftBtn = { x: nameX - 100, y: arrowY - arrowSize / 2, w: 40, h: arrowSize };
+
+        // Имя персонажа
+        ctx.fillStyle = skin.dress || skin.shirt || '#4CAF50';
+        ctx.font = 'bold 18px sans-serif';
+        ctx.fillText(skin.name, nameX, arrowY);
+
+        // Стрелка вправо
+        ctx.fillStyle = '#4CAF50';
+        ctx.font = 'bold ' + arrowSize + 'px sans-serif';
+        ctx.fillText('►', nameX + 80, arrowY);
+        this._skinRightBtn = { x: nameX + 60, y: arrowY - arrowSize / 2, w: 40, h: arrowSize };
 
         // Счётчик
         if (totalTrashCollected > 0) {

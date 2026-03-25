@@ -84,7 +84,9 @@ ECO.Config = {
 
     // Скины персонажа
     SKINS: [
-        { name: 'Эко', type: 'chibi', gender: 'girl', dress: '#4CAF50' }
+        { name: 'Эко', type: 'chibi', gender: 'girl', dress: '#4CAF50' },
+        { name: 'Маша', type: 'proc', gender: 'girl', dress: '#E91E63', dressAccent: '#C2185B', ribbon: '#FF80AB' },
+        { name: 'Коля', type: 'proc', gender: 'boy', shirt: '#2196F3', shirtAccent: '#1565C0', pants: '#455A64' }
     ],
 
     // Состояния игры

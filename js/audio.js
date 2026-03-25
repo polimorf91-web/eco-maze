@@ -74,26 +74,25 @@ ECO.Audio = {
     // Маппинг тем → мелодия (по индексу темы)
     _themeMelodyMap: [0, 3, 2, 2, 1, 4, 3, 3, 4, 4, 1, 0],
 
-    startMusic: function(themeIndex) {
+    // Музыка для стартового экрана (спокойная, тише)
+    startMenuMusic: function() {
         if (!this.enabled || !this.ctx) return;
-        // Если уже играет та же мелодия — не перезапускать
-        var melIdx = 0;
-        if (themeIndex !== undefined && themeIndex >= 0) {
-            melIdx = this._themeMelodyMap[themeIndex % this._themeMelodyMap.length] || 0;
-        }
-        if (this.musicPlaying && this._currentMelodyIdx === melIdx) return;
-
-        // Остановить предыдущую
-        if (this.musicPlaying) this.stopMusic();
-
+        if (this.musicPlaying && this._currentMelodyIdx === 3) return; // уже играет меню
         this._resume();
+        this.stopMusic();
+        // Используем спокойную мелодию (индекс 3) с пониженной громкостью
+        this._startMusicInternal(3, 0.12);
+    },
+
+    _startMusicInternal: function(melIdx, volume) {
+        if (!this.enabled || !this.ctx) return;
         this.musicPlaying = true;
         this._currentMelodyIdx = melIdx;
 
         var melDef = this._melodies[melIdx];
         var ctx = this.ctx;
         var masterGain = ctx.createGain();
-        masterGain.gain.value = 0.25;
+        masterGain.gain.value = volume || 0.25;
         masterGain.connect(ctx.destination);
 
         var melody = melDef.notes;
@@ -109,7 +108,6 @@ ECO.Audio = {
             if (!self.musicPlaying) return;
             var now = nextLoopStart;
 
-            // Мелодия
             for (var i = 0; i < melody.length; i++) {
                 var osc = ctx.createOscillator();
                 var noteGain = ctx.createGain();
@@ -124,7 +122,6 @@ ECO.Audio = {
                 osc.stop(t + noteLen);
             }
 
-            // Бас
             var bass = melDef.bass;
             var bassLen = loopLen / bass.length;
             for (var j = 0; j < bass.length; j++) {
@@ -141,7 +138,6 @@ ECO.Audio = {
                 bOsc.stop(bt + bassLen);
             }
 
-            // Гармония (аккордовые тона, тихий sine)
             var harmony = melDef.harmony;
             if (harmony && harmony.length > 0) {
                 var harmLen = loopLen / harmony.length;
@@ -160,46 +156,6 @@ ECO.Audio = {
                 }
             }
 
-            // Перкуссия (бочка + хай-хэт)
-            var percSteps = 16;
-            var percLen = loopLen / percSteps;
-            for (var p = 0; p < percSteps; p++) {
-                var pt = now + p * percLen;
-                // Бочка: на 1,5,9,13 долях
-                if (p % 4 === 0) {
-                    var kickOsc = ctx.createOscillator();
-                    var kickGain = ctx.createGain();
-                    kickOsc.type = 'sine';
-                    kickOsc.frequency.setValueAtTime(150, pt);
-                    kickOsc.frequency.exponentialRampToValueAtTime(40, pt + 0.1);
-                    kickGain.gain.setValueAtTime(0.12, pt);
-                    kickGain.gain.exponentialRampToValueAtTime(0.001, pt + 0.12);
-                    kickOsc.connect(kickGain);
-                    kickGain.connect(masterGain);
-                    kickOsc.start(pt);
-                    kickOsc.stop(pt + 0.15);
-                }
-                // Хай-хэт: на 3,7,11,15 долях
-                if (p % 4 === 2) {
-                    try {
-                        var hatDur = 0.04;
-                        var hatBufSize = Math.floor(ctx.sampleRate * hatDur);
-                        var hatBuf = ctx.createBuffer(1, hatBufSize, ctx.sampleRate);
-                        var hatData = hatBuf.getChannelData(0);
-                        for (var hi = 0; hi < hatBufSize; hi++) {
-                            hatData[hi] = (Math.random() * 2 - 1) * Math.exp(-hi / hatBufSize * 8);
-                        }
-                        var hatSrc = ctx.createBufferSource();
-                        hatSrc.buffer = hatBuf;
-                        var hatGain = ctx.createGain();
-                        hatGain.gain.value = 0.05;
-                        hatSrc.connect(hatGain);
-                        hatGain.connect(masterGain);
-                        hatSrc.start(pt);
-                    } catch(e) {}
-                }
-            }
-
             nextLoopStart += loopLen;
             var delay = (nextLoopStart - ctx.currentTime - 0.1) * 1000;
             self._musicTimeout = setTimeout(scheduleLoop, Math.max(0, delay));
@@ -207,6 +163,18 @@ ECO.Audio = {
 
         scheduleLoop();
         this._musicNodes = { masterGain: masterGain };
+    },
+
+    startMusic: function(themeIndex) {
+        if (!this.enabled || !this.ctx) return;
+        var melIdx = 0;
+        if (themeIndex !== undefined && themeIndex >= 0) {
+            melIdx = this._themeMelodyMap[themeIndex % this._themeMelodyMap.length] || 0;
+        }
+        if (this.musicPlaying && this._currentMelodyIdx === melIdx) return;
+        if (this.musicPlaying) this.stopMusic();
+        this._resume();
+        this._startMusicInternal(melIdx, 0.25);
     },
 
     stopMusic: function() {

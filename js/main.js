@@ -717,8 +717,10 @@ ECO.Game = {
 
         switch (this.state) {
             case 'menu':
+                // Запустить музыку меню при первом взаимодействии (AudioContext требует жест)
+                ECO.Audio._resume();
+                if (!ECO.Audio.musicPlaying) ECO.Audio.startMenuMusic();
                 if (ECO.Renderer.hitTest(ECO.Renderer._startBtn, x, y)) {
-                    ECO.Audio._resume();
                     this.startGame(false);
                 } else if (ECO.Renderer.hitTest(ECO.Renderer._skinLeftBtn, x, y)) {
                     this.selectedSkin = (this.selectedSkin - 1 + ECO.Config.SKINS.length) % ECO.Config.SKINS.length;

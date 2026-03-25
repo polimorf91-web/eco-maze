@@ -85,6 +85,8 @@ ECO.Input = {
                     ECO.Audio.enabled = true;
                     if (ECO.Game.state === 'playing') {
                         ECO.Audio.startMusic(ECO.Game._themeIndex);
+                    } else if (ECO.Game.state === 'menu') {
+                        ECO.Audio.startMenuMusic();
                     }
                 }
                 updateMuteIcon();
