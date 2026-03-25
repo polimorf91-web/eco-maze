@@ -55,8 +55,8 @@ ECO.Sprites = {
         switch (direction) {
             case DIR.DOWN:  sx = 0; sy = 0; break;    // фронт — top-left
             case DIR.UP:    sx = iw; sy = 0; break;   // спина — top-right
-            case DIR.LEFT:  sx = 0; sy = ih; break;   // левый бок — bottom-left
-            case DIR.RIGHT: sx = iw; sy = ih; break;  // правый бок — bottom-right
+            case DIR.LEFT:  sx = iw; sy = ih; break;  // левый бок — bottom-right (инвертировано)
+            case DIR.RIGHT: sx = 0; sy = ih; break;   // правый бок — bottom-left (инвертировано)
             default:        sx = 0; sy = 0; break;    // по умолчанию фронт
         }
 
