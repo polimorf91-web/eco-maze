@@ -384,12 +384,15 @@ ECO.Game = {
             }
         }
 
+        // Дать щит игроку — награда за сдачу мусора
+        this.player.hasShield = true;
+
         ECO.Audio.playExitOpen();
         var ts = ECO.Renderer.tileSize;
         ECO.Animations.spawnConfetti(bucket.pixelX + ts / 2, bucket.pixelY, 20);
         ECO.Animations.spawnFloatingText(
             bucket.pixelX + ts / 2, bucket.pixelY - ts * 0.3,
-            'Выход открыт!', '#4CAF50'
+            '🛡 Щит + Выход открыт!', '#4CAF50'
         );
     },
 

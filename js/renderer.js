@@ -196,28 +196,34 @@ ECO.Renderer = {
     drawHUD: function(ctx, game) {
         var pad = 10;
         var fontSize = 16;
+        var row1 = 8;        // основная строка: таймер, мусор, уровень
+        var row2 = 28;       // название локации + статусы
+        var hudH = 48;       // высота фона HUD
         ctx.font = 'bold ' + fontSize + 'px sans-serif';
         ctx.textBaseline = 'top';
 
+        // Статусы (собрать заранее чтобы знать, расширять ли фон)
+        var statuses = [];
+        if (game.player && game.player.hasShield) statuses.push('🛡 Щит');
+        if (game.freezeTimer > 0) statuses.push('❄ ' + Math.ceil(game.freezeTimer / 1000) + 'с');
+        if (game.sneakersTimer > 0) statuses.push('👟 ' + Math.ceil(game.sneakersTimer / 1000) + 'с');
+        if (game.compassTimer > 0) statuses.push('🧭 ' + Math.ceil(game.compassTimer / 1000) + 'с');
+
         // Полупрозрачный фон HUD
         ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(0, 0, this.width, 44);
+        ctx.fillRect(0, 0, this.width, hudH);
 
-        // Таймер
+        // Строка 1: Таймер | Мусор | Уровень
         ctx.fillStyle = '#FFF';
         ctx.textAlign = 'left';
-        ctx.fillText('⏱ ' + ECO.Utils.formatTime(game.elapsedTime), pad, pad);
-
-        // Счётчик мусора
+        ctx.fillText('⏱ ' + ECO.Utils.formatTime(game.elapsedTime), pad, row1);
         ctx.textAlign = 'center';
-        ctx.fillText('🗑 ' + game.trashCollected + '/' + game.trashTotal, this.width / 2, pad);
-
-        // Уровень
+        ctx.fillText('🗑 ' + game.trashCollected + '/' + game.trashTotal, this.width / 2, row1);
         ctx.textAlign = 'right';
         var levelText = game.endless ? 'Ур. ' + game.level + ' ∞' : 'Ур. ' + game.level + '/' + ECO.Config.STORY_LEVELS;
-        ctx.fillText(levelText, this.width - pad, pad);
+        ctx.fillText(levelText, this.width - pad, row1);
 
-        // Название локации (под основной панелью)
+        // Строка 2: Локация слева, статусы справа
         if (game.theme && game.theme.name) {
             var locIcons = {
                 'Город': '🏙️', 'Деревня': '🏡', 'Центр': '🏛️', 'Мегаполис': '🌆',
@@ -225,32 +231,25 @@ ECO.Renderer = {
                 'Пляж': '🏖️', 'Школа': '🏫', 'Лес': '🌲', 'Площадка': '🎪'
             };
             var locIcon = locIcons[game.theme.name] || '📍';
-            ctx.textAlign = 'center';
-            ctx.font = 'bold 15px sans-serif';
-            ctx.fillStyle = 'rgba(255,255,255,0.7)';
-            ctx.fillText(locIcon + ' ' + game.theme.name, this.width / 2, 48);
+            ctx.textAlign = 'left';
+            ctx.font = '13px sans-serif';
+            ctx.fillStyle = 'rgba(255,255,255,0.65)';
+            ctx.fillText(locIcon + ' ' + game.theme.name, pad, row2);
         }
-
-        // Вторая строка: статусы
-        var statuses = [];
-        if (game.player && game.player.hasShield) statuses.push('🛡 Щит');
-        if (game.freezeTimer > 0) statuses.push('❄ ' + Math.ceil(game.freezeTimer / 1000) + 'с');
-        if (game.sneakersTimer > 0) statuses.push('👟 ' + Math.ceil(game.sneakersTimer / 1000) + 'с');
-        if (game.compassTimer > 0) statuses.push('🧭 ' + Math.ceil(game.compassTimer / 1000) + 'с');
 
         if (statuses.length > 0) {
-            ctx.textAlign = 'center';
-            ctx.font = fontSize - 2 + 'px sans-serif';
+            ctx.textAlign = 'right';
+            ctx.font = '13px sans-serif';
             ctx.fillStyle = '#FFD54F';
-            ctx.fillText(statuses.join('  |  '), this.width / 2, pad + fontSize + 4);
+            ctx.fillText(statuses.join('  '), this.width - pad, row2);
         }
 
-        // Комбо текст
+        // Комбо текст (под HUD)
         if (game.comboCount >= 2) {
             ctx.textAlign = 'center';
-            ctx.font = 'bold 24px sans-serif';
+            ctx.font = 'bold 22px sans-serif';
             ctx.fillStyle = '#FFEB3B';
-            ctx.fillText('Комбо x' + game.comboCount + '!', this.width / 2, 66);
+            ctx.fillText('Комбо x' + game.comboCount + '!', this.width / 2, hudH + 4);
         }
     },
 
