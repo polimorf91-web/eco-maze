@@ -45,30 +45,24 @@ ECO.AI = {
     moveRat: function(rat, dt, grid, speed) {
         if (rat.frozen) return;
 
-        // Fallback: если путь пуст и не в движении — попробовать прямой шаг
+        // Fallback: если путь пуст и не в движении — попробовать прямой шаг или случайный ход
         if ((!rat.path || rat.path.length === 0) && !rat.moving) {
             var direct = this._ratDirectStep(rat, grid);
             if (direct && direct.length > 0) {
                 rat.path = direct;
             } else {
-                // Крыса застряла — случайный шаг к проходимой клетке
-                var dirs = [
-                    { x: rat.tileX + 1, y: rat.tileY },
-                    { x: rat.tileX - 1, y: rat.tileY },
-                    { x: rat.tileX, y: rat.tileY + 1 },
-                    { x: rat.tileX, y: rat.tileY - 1 }
-                ];
-                var valid = [];
-                for (var d = 0; d < dirs.length; d++) {
-                    if (ECO.Collision.canMoveTo(grid, dirs[d].x, dirs[d].y)) {
-                        valid.push(dirs[d]);
+                // Случайный шаг — выбрать любое свободное соседнее поле
+                var dirs = [[0,-1],[0,1],[-1,0],[1,0]];
+                var shuffled = dirs.sort(function() { return Math.random() - 0.5; });
+                for (var ri = 0; ri < shuffled.length; ri++) {
+                    var nx = rat.tileX + shuffled[ri][0];
+                    var ny = rat.tileY + shuffled[ri][1];
+                    if (ECO.Collision.canMoveTo(grid, nx, ny)) {
+                        rat.path = [{ x: nx, y: ny }];
+                        break;
                     }
                 }
-                if (valid.length > 0) {
-                    rat.path = [valid[Math.floor(Math.random() * valid.length)]];
-                } else {
-                    return;
-                }
+                if (!rat.path || rat.path.length === 0) return;
             }
         }
         if (!rat.path || rat.path.length === 0) return;
@@ -82,12 +76,23 @@ ECO.AI = {
                 // Путь устарел — немедленно пересчитать через BFS
                 rat.path = [];
                 rat.pathTimer = 9999; // форсировать пересчёт в следующем update
-                // Попробовать прямой шаг прямо сейчас
+                // Попробовать прямой шаг или случайный ход
                 var fallback = this._ratDirectStep(rat, grid);
                 if (fallback && fallback.length > 0) {
                     rat.path = fallback;
                 } else {
-                    return;
+                    // Случайный шаг
+                    var fdirs = [[0,-1],[0,1],[-1,0],[1,0]];
+                    var fshuf = fdirs.sort(function() { return Math.random() - 0.5; });
+                    for (var fi = 0; fi < fshuf.length; fi++) {
+                        var fnx = rat.tileX + fshuf[fi][0];
+                        var fny = rat.tileY + fshuf[fi][1];
+                        if (ECO.Collision.canMoveTo(grid, fnx, fny)) {
+                            rat.path = [{ x: fnx, y: fny }];
+                            break;
+                        }
+                    }
+                    if (!rat.path || rat.path.length === 0) return;
                 }
                 next = rat.path[0];
             }

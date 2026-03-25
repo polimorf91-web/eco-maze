@@ -304,7 +304,7 @@ ECO.Entities = {
             speed: ECO.Config.RAT_BASE_SPEED * (speedMult || 1),
             frozen: false,
             path: [],
-            pathTimer: 0,
+            pathTimer: 99999, // сразу пересчитать путь на первом кадре
             frame: 0,
 
             update: function(dt, grid, playerTileX, playerTileY) {
