@@ -1,6 +1,7 @@
 // ECO.Sprites — процедурная отрисовка всех спрайтов на Canvas
 ECO.Sprites = {
-    // Спрайт-шит девочки чиби (4 ракурса в сетке 2x2)
+    // Анимированный спрайт-шит девочки чиби (4 направления x 4 кадра, сетка 4x4)
+    // Ряды: 0=DOWN, 1=UP, 2=RIGHT, 3=LEFT. Столбцы: 4 кадра анимации бега.
     _chibiImg: null,
     _chibiLoaded: false,
     // Спрайт ведёрка чиби
@@ -10,24 +11,19 @@ ECO.Sprites = {
         var self = this;
         this._chibiImg = new Image();
         this._chibiImg.onload = function() { self._chibiLoaded = true; };
-        this._chibiImg.src = 'девочка чиби.png';
+        this._chibiImg.src = 'chibi_spritesheet.png';
 
         this._bucketImg = new Image();
         this._bucketImg.onload = function() { self._bucketLoaded = true; };
         this._bucketImg.src = 'bucket_chibi.png';
     },
 
-    // Отрисовка персонажа из спрайт-шита
-    // Раскладка: top-left=фронт(DOWN), top-right=спина(UP), bottom-left=LEFT, bottom-right=RIGHT
+    // Отрисовка анимированного персонажа из спрайт-шита
     drawChibiPlayer: function(ctx, x, y, size, direction, bagSize, frame, hasShield) {
         var s = size;
         var cx = x + s / 2;
         var cy = y + s / 2;
         var DIR = ECO.Config.DIR;
-
-        // Покачивание при ходьбе
-        var walking = (direction !== DIR.NONE);
-        var bounce = walking ? Math.sin(frame * 0.6) * s * 0.02 : 0;
 
         ctx.save();
 
@@ -44,7 +40,6 @@ ECO.Sprites = {
         }
 
         if (!this._chibiLoaded || !this._chibiImg) {
-            // Fallback — простой круг пока картинка грузится
             ctx.fillStyle = '#4CAF50';
             ctx.beginPath();
             ctx.arc(cx, cy, s * 0.35, 0, Math.PI * 2);
@@ -54,27 +49,34 @@ ECO.Sprites = {
         }
 
         var img = this._chibiImg;
-        var iw = img.naturalWidth / 2;
-        var ih = img.naturalHeight / 2;
+        var frameSize = img.naturalWidth / 4; // 4 столбца
 
-        // Выбрать квадрант по направлению
-        var sx = 0, sy = 0;
+        // Ряд по направлению: 0=DOWN, 1=UP, 2=RIGHT, 3=LEFT
+        var row = 0;
         switch (direction) {
-            case DIR.DOWN:  sx = 0; sy = 0; break;    // фронт — top-left
-            case DIR.UP:    sx = iw; sy = 0; break;   // спина — top-right
-            case DIR.LEFT:  sx = iw; sy = ih; break;  // левый бок — bottom-right (инвертировано)
-            case DIR.RIGHT: sx = 0; sy = ih; break;   // правый бок — bottom-left (инвертировано)
-            default:        sx = 0; sy = 0; break;    // по умолчанию фронт
+            case DIR.DOWN:  row = 0; break;
+            case DIR.UP:    row = 1; break;
+            case DIR.RIGHT: row = 2; break;
+            case DIR.LEFT:  row = 3; break;
+            default:        row = 0; break;
         }
 
-        // Рисуем с покачиванием, чуть крупнее тайла для читаемости
+        // Кадр анимации (0-3), переключение по frame counter
+        var animFrame = (Math.floor(frame / 2)) % 4;
+        // Если стоит — показать кадр 0 (idle)
+        if (direction === DIR.NONE) animFrame = 0;
+
+        var sx = animFrame * frameSize;
+        var sy = row * frameSize;
+
+        // Рисуем чуть крупнее тайла
         var drawSize = s * 1.1;
         var dx = cx - drawSize / 2;
-        var dy = cy - drawSize / 2 + bounce - s * 0.05;
+        var dy = cy - drawSize / 2 - s * 0.05;
 
-        ctx.drawImage(img, sx, sy, iw, ih, dx, dy, drawSize, drawSize);
+        ctx.drawImage(img, sx, sy, frameSize, frameSize, dx, dy, drawSize, drawSize);
 
-        // Индикатор мусора в руках
+        // Индикатор мусора
         if (bagSize > 0) {
             ctx.fillStyle = '#795548';
             ctx.font = 'bold ' + Math.round(s * 0.25) + 'px sans-serif';
