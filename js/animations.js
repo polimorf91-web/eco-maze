@@ -90,6 +90,31 @@ ECO.Animations = {
         }
     },
 
+    // Конфетти, взрывающееся с левого или правого края экрана
+    spawnSideConfetti: function(screenW, screenH, side) {
+        var colors = ['#FF1744', '#FFEB3B', '#00E676', '#2979FF', '#D500F9', '#FF9100', '#E91E63', '#4CAF50'];
+        var startX = (side === 'left') ? 0 : screenW;
+        var dirMul = (side === 'left') ? 1 : -1;
+        for (var i = 0; i < 25; i++) {
+            var lifeVal = 2500 + Math.random() * 1500;
+            var angle = (Math.random() * 0.8 + 0.2) * dirMul; // угол к центру
+            var speed = 120 + Math.random() * 180;
+            this.particles.push({
+                x: startX, y: screenH * (0.1 + Math.random() * 0.5),
+                vx: Math.cos(angle) * speed * dirMul,
+                vy: -Math.random() * 150 - 30,
+                gravity: 120,
+                size: 5 + Math.random() * 5,
+                color: ECO.Utils.randomChoice(colors),
+                shape: Math.random() > 0.4 ? 'leaf' : 'rect',
+                life: lifeVal,
+                maxLife: lifeVal,
+                alpha: 1,
+                rotation: Math.random() * Math.PI * 2
+            });
+        }
+    },
+
     // Фейерверк (взрыв частиц по кругу)
     spawnFirework: function(x, y) {
         var colors = ['#FF1744', '#FFEB3B', '#00E676', '#2979FF', '#D500F9', '#FF9100'];

@@ -499,7 +499,7 @@ ECO.Sprites = {
     },
 
     // Маскот Ведёрко (чиби-спрайт из картинки)
-    drawBucket: function(ctx, x, y, size, isFull, playerAngle) {
+    drawBucket: function(ctx, x, y, size, isFull, playerAngle, noSway) {
         var s = size;
         var cx = x + s / 2;
         var cy = y + s / 2;
@@ -507,13 +507,15 @@ ECO.Sprites = {
 
         ctx.save();
 
-        // Покачивание — ведёрко «дышит» и качается
-        var sway = Math.sin(now / 600) * 0.12;    // заметный наклон
-        var breathe = Math.sin(now / 900) * s * 0.03; // дыхание (вертикальное подпрыгивание)
+        // Покачивание — ведёрко «дышит» и качается (отключается на меню)
+        var sway = noSway ? 0 : Math.sin(now / 600) * 0.12;
+        var breathe = noSway ? 0 : Math.sin(now / 900) * s * 0.03;
 
-        ctx.translate(cx, cy);
-        ctx.rotate(sway);
-        ctx.translate(-cx, -cy);
+        if (!noSway) {
+            ctx.translate(cx, cy);
+            ctx.rotate(sway);
+            ctx.translate(-cx, -cy);
+        }
 
         if (this._bucketLoaded && this._bucketImg) {
             var drawSize = s * 0.95; // чуть меньше
@@ -1310,14 +1312,17 @@ ECO.Sprites = {
         ctx.closePath();
         ctx.fill();
 
-        // Ручки
+        // Ручки (наружу от кубка)
         ctx.strokeStyle = '#FFC107';
         ctx.lineWidth = s * 0.04;
+        ctx.lineCap = 'round';
+        // Левая ручка — дуга открытая влево
         ctx.beginPath();
-        ctx.arc(cx - s * 0.28, cy - s * 0.05, s * 0.1, -1.2, 1.2);
+        ctx.arc(cx - s * 0.32, cy - s * 0.02, s * 0.12, -1.0, 1.0);
         ctx.stroke();
+        // Правая ручка — дуга открытая вправо
         ctx.beginPath();
-        ctx.arc(cx + s * 0.28, cy - s * 0.05, s * 0.1, Math.PI - 1.2, Math.PI + 1.2);
+        ctx.arc(cx + s * 0.32, cy - s * 0.02, s * 0.12, Math.PI - 1.0, Math.PI + 1.0);
         ctx.stroke();
 
         // Звезда на кубке

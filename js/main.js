@@ -556,6 +556,9 @@ ECO.Game = {
         );
         ECO.Renderer.specialTileMap = this.specialTileMap;
 
+        // Обновить подсказку спецтайла
+        this._updateSpecialTileHint();
+
         this.entities = [];
 
         // Игрок
@@ -747,6 +750,23 @@ ECO.Game = {
                     this.startGame(false);
                 }
                 break;
+        }
+    },
+
+    // Обновить подсказку спецтайла текущего уровня
+    _updateSpecialTileHint: function() {
+        var bar = document.getElementById('special-tile-bar');
+        var hint = document.getElementById('special-tile-hint');
+        if (!bar || !hint) return;
+
+        if (this.theme && this.theme.specialTile) {
+            var st = this.theme.specialTile;
+            var icons = { 'slow': '🐌', 'boost': '⚡', 'ice': '🧊' };
+            var effects = { 'slow': 'замедляет', 'boost': 'ускоряет', 'ice': 'скольжение' };
+            hint.textContent = (icons[st.type] || '✦') + ' ' + st.name + ' — ' + (effects[st.type] || st.type);
+            bar.style.display = 'flex';
+        } else {
+            bar.style.display = 'none';
         }
     },
 

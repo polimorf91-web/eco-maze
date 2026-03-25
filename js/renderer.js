@@ -268,19 +268,24 @@ ECO.Renderer = {
 
         // Угол от ведёрка к курсору (для глаз)
         var eyeAngle = Math.atan2(this._cursorY - bucketCY, this._cursorX - bucketCX);
-        ECO.Sprites.drawBucket(ctx, bucketX, bucketY, bucketSize, false, eyeAngle);
+        ECO.Sprites.drawBucket(ctx, bucketX, bucketY, bucketSize, false, eyeAngle, true);
 
-
-        // Персонаж (справа от ведёрка)
+        // Персонаж (справа от ведёрка, размер = ведёрко, с тенью)
         var menuSkin = ECO.Config.SKINS[skinIdx] || ECO.Config.SKINS[0];
-        var charX = w / 2 + 15;
-        var charY = bucketY + (bucketSize - 65) / 2;
+        var charSize = bucketSize;
+        var charX = w / 2 + 5;
+        var charY = bucketY;
+        // Тень под персонажем
+        ctx.fillStyle = 'rgba(0,0,0,0.12)';
+        ctx.beginPath();
+        ctx.ellipse(charX + charSize / 2, charY + charSize * 0.9, charSize * 0.25, charSize * 0.07, 0, 0, Math.PI * 2);
+        ctx.fill();
         if (menuSkin.type === 'chibi') {
-            ECO.Sprites.drawChibiPlayer(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false);
+            ECO.Sprites.drawChibiPlayer(ctx, charX, charY, charSize, ECO.Config.DIR.DOWN, 0, 0, false);
         } else if (menuSkin.gender === 'boy') {
-            ECO.Sprites.drawBoy(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
+            ECO.Sprites.drawBoy(ctx, charX, charY, charSize, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
         } else {
-            ECO.Sprites.drawGirl(ctx, charX, charY, 65, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
+            ECO.Sprites.drawGirl(ctx, charX, charY, charSize, ECO.Config.DIR.DOWN, 0, 0, false, skinIdx);
         }
 
         // Описание
@@ -408,30 +413,24 @@ ECO.Renderer = {
         if (!this._victoryStarted) {
             this._victoryStarted = true;
             this._victoryTime = 0;
-            ECO.Animations.spawnConfetti(w / 2, h * 0.3, 60);
+            this._nextSideConfetti = 0;
+            ECO.Animations.spawnConfetti(w / 2, h * 0.2, 60);
+            ECO.Animations.spawnSideConfetti(w, h, 'left');
+            ECO.Animations.spawnSideConfetti(w, h, 'right');
             ECO.Audio.playVictory();
         }
         this._victoryTime += 16;
 
+        // Периодические конфетти с боков
+        this._nextSideConfetti -= 16;
+        if (this._nextSideConfetti <= 0) {
+            this._nextSideConfetti = 2000 + Math.random() * 1000;
+            ECO.Animations.spawnSideConfetti(w, h, Math.random() > 0.5 ? 'left' : 'right');
+        }
+
         // Фон
         ctx.fillStyle = '#E8F5E9';
         ctx.fillRect(0, 0, w, h);
-
-        // Деревья
-        ctx.fillStyle = '#4CAF50';
-        for (var i = 0; i < 8; i++) {
-            var tx = (i + 0.5) * w / 8;
-            ctx.beginPath();
-            ctx.moveTo(tx, h * 0.78);
-            ctx.lineTo(tx - 20, h * 0.88);
-            ctx.lineTo(tx + 20, h * 0.88);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.moveTo(tx, h * 0.71);
-            ctx.lineTo(tx - 15, h * 0.8);
-            ctx.lineTo(tx + 15, h * 0.8);
-            ctx.fill();
-        }
 
         // Птицы
         ctx.save();
@@ -489,6 +488,34 @@ ECO.Renderer = {
         var btnW = 200, btnH = 42;
         var y1 = h * 0.72;
         var y2 = h * 0.82;
+
+        // Цветочная поляна под кнопками
+        var meadowY = y2 + btnH + 8;
+        for (var fi = 0; fi < 12; fi++) {
+            var flX = w * (0.08 + fi * 0.08);
+            var flY = meadowY + Math.sin(fi * 1.5) * 4;
+            // Стебелёк
+            ctx.strokeStyle = '#66BB6A';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(flX, flY + 10);
+            ctx.lineTo(flX, flY);
+            ctx.stroke();
+            // Лепестки
+            var flColors = ['#E91E63', '#FF9800', '#FFEB3B', '#9C27B0', '#2196F3', '#FF5722'];
+            ctx.fillStyle = flColors[fi % flColors.length];
+            for (var p = 0; p < 5; p++) {
+                var pa = (Math.PI * 2 / 5) * p + Math.sin(Date.now() / 1000 + fi) * 0.1;
+                ctx.beginPath();
+                ctx.ellipse(flX + Math.cos(pa) * 4, flY + Math.sin(pa) * 4, 3, 2, pa, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            // Серединка
+            ctx.fillStyle = '#FFF9C4';
+            ctx.beginPath();
+            ctx.arc(flX, flY, 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
         ctx.fillStyle = '#4CAF50';
         this._roundRect(ctx, w / 2 - btnW / 2, y1, btnW, btnH, 10);
