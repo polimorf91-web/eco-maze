@@ -1032,126 +1032,129 @@ ECO.Sprites = {
         ctx.restore();
     },
 
-    // Выход — двери лифта с анимацией открытия
+    // Выход — двустворчатые двери с анимацией открытия
     drawExit: function(ctx, x, y, size, isOpen, openProgress) {
         var s = size;
         var cx = x + s / 2;
         var cy = y + s / 2;
-        var p = openProgress || 0;
+        var p = openProgress || 0; // 0 = закрыто, 1 = полностью открыто
 
         ctx.save();
+        // Увеличиваем для видимости
         var sc = 1.2;
         ctx.translate(cx, cy);
         ctx.scale(sc, sc);
         ctx.translate(-cx, -cy);
 
-        // Рамка лифта (внешний корпус)
-        ctx.fillStyle = '#78909C';
-        ctx.fillRect(x + s * 0.04, y + s * 0.04, s * 0.92, s * 0.92);
-
-        // Внутренняя рамка (металлическая окантовка)
-        ctx.fillStyle = '#90A4AE';
-        ctx.fillRect(x + s * 0.08, y + s * 0.08, s * 0.84, s * 0.84);
-
-        // Шахта лифта (тёмный фон за дверьми)
-        var shaftL = x + s * 0.12;
-        var shaftT = y + s * 0.14;
-        var shaftW = s * 0.76;
-        var shaftH = s * 0.72;
-        if (p > 0) {
-            // Свет из кабины при открытии
-            var grd = ctx.createLinearGradient(cx, shaftT, cx, shaftT + shaftH);
-            grd.addColorStop(0, 'rgba(255, 249, 196, ' + (0.9 * p) + ')');
-            grd.addColorStop(0.5, 'rgba(200, 230, 201, ' + (0.7 * p) + ')');
-            grd.addColorStop(1, 'rgba(165, 214, 167, ' + (0.5 * p) + ')');
-            ctx.fillStyle = grd;
-        } else {
-            ctx.fillStyle = '#263238';
-        }
-        ctx.fillRect(shaftL, shaftT, shaftW, shaftH);
-
-        // Стрелка вверх внутри кабины (когда открыт)
-        if (p > 0.5) {
-            ctx.globalAlpha = 0.3 * p;
-            ctx.fillStyle = '#4CAF50';
-            ctx.beginPath();
-            ctx.moveTo(cx, shaftT + shaftH * 0.2);
-            ctx.lineTo(cx - s * 0.12, shaftT + shaftH * 0.5);
-            ctx.lineTo(cx + s * 0.12, shaftT + shaftH * 0.5);
-            ctx.closePath();
-            ctx.fill();
-            ctx.globalAlpha = 1;
-        }
-
-        // Левая створка двери лифта
-        var halfW = shaftW / 2;
-        var doorSlide = halfW * p; // сколько сдвинулась
-        var leftDoorW = halfW - doorSlide;
-        if (leftDoorW > 0.5) {
-            // Основная панель
-            ctx.fillStyle = '#B0BEC5';
-            ctx.fillRect(shaftL, shaftT, leftDoorW, shaftH);
-            // Блик (вертикальная полоса)
-            ctx.fillStyle = '#CFD8DC';
-            ctx.fillRect(shaftL + leftDoorW * 0.15, shaftT, leftDoorW * 0.12, shaftH);
-            // Тень у края
-            ctx.fillStyle = 'rgba(0,0,0,0.1)';
-            ctx.fillRect(shaftL + leftDoorW - 1, shaftT, 2, shaftH);
-        }
-
-        // Правая створка двери лифта
-        var rightDoorX = cx + doorSlide;
-        var rightDoorW = halfW - doorSlide;
-        if (rightDoorW > 0.5) {
-            ctx.fillStyle = '#B0BEC5';
-            ctx.fillRect(rightDoorX, shaftT, rightDoorW, shaftH);
-            // Блик
-            ctx.fillStyle = '#CFD8DC';
-            ctx.fillRect(rightDoorX + rightDoorW * 0.7, shaftT, rightDoorW * 0.12, shaftH);
-            // Тень у края
-            ctx.fillStyle = 'rgba(0,0,0,0.1)';
-            ctx.fillRect(rightDoorX, shaftT, 2, shaftH);
-        }
-
-        // Индикатор этажа сверху
-        var indW = s * 0.2;
-        var indH = s * 0.07;
-        var indX = cx - indW / 2;
-        var indY = y + s * 0.05;
-        ctx.fillStyle = '#37474F';
-        ctx.fillRect(indX, indY, indW, indH);
-        // Треугольник-стрелка «вверх» на индикаторе
-        var arrowGlow = isOpen ? '#4CAF50' : '#607D8B';
-        if (isOpen) {
-            // Мигание
-            var blink = Math.sin(Date.now() / 300) * 0.3 + 0.7;
-            ctx.globalAlpha = blink;
-        }
-        ctx.fillStyle = arrowGlow;
+        // Арка/портал (фон)
+        ctx.fillStyle = '#5D4037';
         ctx.beginPath();
-        ctx.moveTo(cx, indY + indH * 0.15);
-        ctx.lineTo(cx - indW * 0.2, indY + indH * 0.8);
-        ctx.lineTo(cx + indW * 0.2, indY + indH * 0.8);
+        ctx.moveTo(x + s * 0.08, y + s * 0.92);
+        ctx.lineTo(x + s * 0.08, y + s * 0.25);
+        ctx.arc(cx, y + s * 0.25, s * 0.42, Math.PI, 0);
+        ctx.lineTo(x + s * 0.92, y + s * 0.92);
         ctx.closePath();
         ctx.fill();
-        ctx.globalAlpha = 1;
 
-        // Кнопка вызова (справа от дверей)
-        var btnR = s * 0.025;
-        var btnX = x + s * 0.91;
-        var btnY = cy + s * 0.05;
-        ctx.fillStyle = isOpen ? '#4CAF50' : '#455A64';
+        // Внутренность (свет за дверьми — виден когда двери открываются)
+        if (p > 0) {
+            var grd = ctx.createRadialGradient(cx, cy - s * 0.05, 0, cx, cy - s * 0.05, s * 0.4);
+            grd.addColorStop(0, 'rgba(255, 248, 225, ' + (0.9 * p) + ')');
+            grd.addColorStop(0.5, 'rgba(76, 175, 80, ' + (0.6 * p) + ')');
+            grd.addColorStop(1, 'rgba(46, 125, 50, ' + (0.3 * p) + ')');
+            ctx.fillStyle = grd;
+        } else {
+            ctx.fillStyle = '#3E2723';
+        }
         ctx.beginPath();
-        ctx.arc(btnX, btnY, btnR, 0, Math.PI * 2);
+        ctx.moveTo(x + s * 0.14, y + s * 0.88);
+        ctx.lineTo(x + s * 0.14, y + s * 0.3);
+        ctx.arc(cx, y + s * 0.3, s * 0.36, Math.PI, 0);
+        ctx.lineTo(x + s * 0.86, y + s * 0.88);
+        ctx.closePath();
+        ctx.fill();
+
+        // Левая створка двери
+        var doorWidth = s * 0.34;
+        var leftOpen = doorWidth * p * 0.85; // сколько открыто
+        ctx.fillStyle = '#8D6E63';
+        ctx.fillRect(x + s * 0.14 + leftOpen * 0.1, y + s * 0.3, doorWidth - leftOpen, s * 0.58);
+        // Панели на двери
+        if (doorWidth - leftOpen > s * 0.08) {
+            ctx.fillStyle = '#795548';
+            var dlx = x + s * 0.14 + leftOpen * 0.1;
+            var dlw = doorWidth - leftOpen;
+            ctx.fillRect(dlx + dlw * 0.1, y + s * 0.35, dlw * 0.8, s * 0.18);
+            ctx.fillRect(dlx + dlw * 0.1, y + s * 0.6, dlw * 0.8, s * 0.22);
+        }
+
+        // Правая створка двери
+        ctx.fillStyle = '#8D6E63';
+        ctx.fillRect(cx + leftOpen, y + s * 0.3, doorWidth - leftOpen, s * 0.58);
+        if (doorWidth - leftOpen > s * 0.08) {
+            ctx.fillStyle = '#795548';
+            var drx = cx + leftOpen;
+            var drw = doorWidth - leftOpen;
+            ctx.fillRect(drx + drw * 0.1, y + s * 0.35, drw * 0.8, s * 0.18);
+            ctx.fillRect(drx + drw * 0.1, y + s * 0.6, drw * 0.8, s * 0.22);
+        }
+
+        // Ручки дверей (если двери не полностью открыты)
+        if (p < 0.9) {
+            ctx.fillStyle = '#FFD54F';
+            ctx.beginPath();
+            ctx.arc(cx - s * 0.04 - leftOpen * 0.3, cy + s * 0.12, s * 0.03, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(cx + s * 0.04 + leftOpen * 0.3, cy + s * 0.12, s * 0.03, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // Декоративная арка сверху
+        ctx.strokeStyle = '#4E342E';
+        ctx.lineWidth = s * 0.04;
+        ctx.beginPath();
+        ctx.arc(cx, y + s * 0.25, s * 0.42, Math.PI, 0);
+        ctx.stroke();
+
+        // Замковый камень арки
+        ctx.fillStyle = '#A1887F';
+        ctx.beginPath();
+        ctx.moveTo(cx - s * 0.06, y + s * 0.05);
+        ctx.lineTo(cx + s * 0.06, y + s * 0.05);
+        ctx.lineTo(cx + s * 0.04, y + s * 0.15);
+        ctx.lineTo(cx - s * 0.04, y + s * 0.15);
+        ctx.closePath();
         ctx.fill();
 
         // Пульсирующее свечение когда открыт
         if (isOpen && p > 0.3) {
-            var pulse = 0.12 + Math.sin(Date.now() / 500) * 0.08;
+            var pulse = 0.15 + Math.sin(Date.now() / 400) * 0.1;
+            ctx.beginPath();
+            ctx.arc(cx, cy, s * 0.5, 0, Math.PI * 2);
             ctx.strokeStyle = 'rgba(76, 175, 80, ' + (pulse * p) + ')';
-            ctx.lineWidth = 2;
-            ctx.strokeRect(x + s * 0.04 - 2, y + s * 0.04 - 2, s * 0.92 + 4, s * 0.92 + 4);
+            ctx.lineWidth = 3;
+            ctx.stroke();
+            // Лучи света из дверей
+            if (p > 0.5) {
+                ctx.globalAlpha = 0.15 * p;
+                ctx.fillStyle = '#FFEB3B';
+                ctx.beginPath();
+                ctx.moveTo(cx - s * 0.1, cy);
+                ctx.lineTo(cx - s * 0.5, cy + s * 0.7);
+                ctx.lineTo(cx + s * 0.5, cy + s * 0.7);
+                ctx.lineTo(cx + s * 0.1, cy);
+                ctx.closePath();
+                ctx.fill();
+                ctx.globalAlpha = 1;
+            }
         }
+
+        // Ступеньки внизу
+        ctx.fillStyle = '#6D4C41';
+        ctx.fillRect(x + s * 0.1, y + s * 0.88, s * 0.8, s * 0.06);
+        ctx.fillStyle = '#5D4037';
+        ctx.fillRect(x + s * 0.06, y + s * 0.93, s * 0.88, s * 0.05);
 
         ctx.restore();
     },
