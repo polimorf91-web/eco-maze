@@ -318,7 +318,7 @@ ECO.Renderer = {
         ctx.fillStyle = '#4CAF50';
         ctx.font = 'bold ' + arrowSize + 'px sans-serif';
         ctx.fillText('◄', nameX - 80, arrowY);
-        this._skinLeftBtn = { x: nameX - 100, y: arrowY - arrowSize / 2, w: 40, h: arrowSize };
+        this._skinLeftBtn = { x: nameX - 102, y: arrowY - 22, w: 44, h: 44 };
 
         // Имя персонажа
         ctx.fillStyle = skin.dress || skin.shirt || '#4CAF50';
@@ -329,7 +329,7 @@ ECO.Renderer = {
         ctx.fillStyle = '#4CAF50';
         ctx.font = 'bold ' + arrowSize + 'px sans-serif';
         ctx.fillText('►', nameX + 80, arrowY);
-        this._skinRightBtn = { x: nameX + 60, y: arrowY - arrowSize / 2, w: 40, h: arrowSize };
+        this._skinRightBtn = { x: nameX + 58, y: arrowY - 22, w: 44, h: 44 };
 
         // Счётчик
         if (totalTrashCollected > 0) {

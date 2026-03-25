@@ -3,9 +3,9 @@ ECO.Levels = {
     table: [
         null, // индекс 0 не используется
         { mazeCells: 7,  trash: 4,  rats: 0, cat: false, flower: false, sneakers: false, compass: false, baseTime: 60000 },
-        { mazeCells: 9,  trash: 6,  rats: 1, cat: true,  flower: true,  sneakers: false, compass: false, baseTime: 90000 },
-        { mazeCells: 9,  trash: 8,  rats: 1, cat: true,  flower: true,  sneakers: true,  compass: false, baseTime: 100000 },
-        { mazeCells: 11, trash: 10, rats: 2, cat: true,  flower: true,  sneakers: true,  compass: true,  baseTime: 120000 },
+        { mazeCells: 9,  trash: 6,  rats: 1, cat: false, flower: false, sneakers: false, compass: false, baseTime: 90000 },
+        { mazeCells: 9,  trash: 8,  rats: 1, cat: true,  flower: false, sneakers: false, compass: false, baseTime: 100000 },
+        { mazeCells: 11, trash: 10, rats: 2, cat: true,  flower: true,  sneakers: true,  compass: false, baseTime: 120000 },
         { mazeCells: 13, trash: 12, rats: 2, cat: true,  flower: true,  sneakers: true,  compass: true,  baseTime: 150000 }
     ],
 

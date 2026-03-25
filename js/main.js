@@ -167,6 +167,8 @@ ECO.Game = {
                 }
             } else if (e.type === 'cat_follower') {
                 e.update(physicsDt, this.maze.grid, this.player.tileX, this.player.tileY);
+            } else if (e.type === 'bucket' && e._hintCooldown > 0) {
+                e._hintCooldown -= physicsDt;
             } else if (e.update) {
                 e.update(physicsDt);
             }
@@ -206,10 +208,24 @@ ECO.Game = {
 
         // Idle penalty (реальное время)
         this.idleTimer += rawDt;
-        if (this.idleTimer >= ECO.Config.IDLE_PENALTY_MS && this.idleExtraCount < ECO.Config.IDLE_MAX_EXTRA_TRASH) {
-            this._spawnExtraTrash();
+        if (this.idleTimer >= ECO.Config.IDLE_PENALTY_MS) {
+            // Бесплатная подсказка: включить компас на 10 сек
+            if (!this.compassActive) {
+                this.compassActive = true;
+                this.compassTimer = 10000;
+                this._updateNearestTrash();
+                ECO.Animations.spawnFloatingText(
+                    this.player.pixelX + ECO.Renderer.tileSize / 2,
+                    this.player.pixelY,
+                    '🧭 Подсказка!', '#795548'
+                );
+            }
+            // Дополнительный мусор
+            if (this.idleExtraCount < ECO.Config.IDLE_MAX_EXTRA_TRASH) {
+                this._spawnExtraTrash();
+                this.idleExtraCount++;
+            }
             this.idleTimer = 0;
-            this.idleExtraCount++;
         }
 
         // Проверка коллизий с сущностями
@@ -340,7 +356,19 @@ ECO.Game = {
     },
 
     _depositTrash: function(bucket) {
-        if (this.trashCollected < this.trashTotal) return;
+        if (this.trashCollected < this.trashTotal) {
+            var remaining = this.trashTotal - this.trashCollected;
+            if (remaining <= 3 && !bucket._hintCooldown) {
+                bucket.bounceTimer = 400;
+                ECO.Animations.spawnFloatingText(
+                    bucket.pixelX + ECO.Renderer.tileSize / 2,
+                    bucket.pixelY - ECO.Renderer.tileSize * 0.3,
+                    'Собери ещё ' + remaining + '!', '#FFB300'
+                );
+                bucket._hintCooldown = 2000; // не спамить
+            }
+            return;
+        }
         if (bucket.isFull) return;
 
         bucket.isFull = true;
@@ -954,11 +982,15 @@ ECO.Game = {
             }
         };
 
+        var iconScale = 32 / 24;
         for (var id in icons) {
             var el = document.getElementById(id);
             if (!el) continue;
             var c = el.getContext('2d');
+            c.save();
+            c.scale(iconScale, iconScale);
             icons[id](c);
+            c.restore();
         }
     }
 };
