@@ -3,11 +3,18 @@ ECO.Sprites = {
     // Спрайт-шит девочки чиби (4 ракурса в сетке 2x2)
     _chibiImg: null,
     _chibiLoaded: false,
+    // Спрайт ведёрка чиби
+    _bucketImg: null,
+    _bucketLoaded: false,
     initChibi: function() {
         var self = this;
         this._chibiImg = new Image();
         this._chibiImg.onload = function() { self._chibiLoaded = true; };
         this._chibiImg.src = 'девочка чиби.png';
+
+        this._bucketImg = new Image();
+        this._bucketImg.onload = function() { self._bucketLoaded = true; };
+        this._bucketImg.src = 'bucket_chibi.png';
     },
 
     // Отрисовка персонажа из спрайт-шита
@@ -493,7 +500,7 @@ ECO.Sprites = {
         ctx.restore();
     },
 
-    // Маскот Ведёрко (по референсу: серебристое металлическое ведро, гугли-глаза, белый пакет сверху)
+    // Маскот Ведёрко (чиби-спрайт из картинки)
     drawBucket: function(ctx, x, y, size, isFull, playerAngle) {
         var s = size;
         var cx = x + s / 2;
@@ -501,111 +508,32 @@ ECO.Sprites = {
 
         ctx.save();
 
-        // Чёрное основание (ободок снизу)
-        ctx.fillStyle = '#212121';
-        ctx.beginPath();
-        ctx.ellipse(cx, cy + s * 0.35, s * 0.28, s * 0.06, 0, 0, Math.PI * 2);
-        ctx.fill();
+        if (this._bucketLoaded && this._bucketImg) {
+            var drawSize = s * 1.15;
+            var dx = cx - drawSize / 2;
+            var dy = cy - drawSize / 2 - s * 0.05;
+            ctx.drawImage(this._bucketImg, dx, dy, drawSize, drawSize);
+        } else {
+            // Fallback пока картинка грузится
+            ctx.fillStyle = '#9E9E9E';
+            ctx.fillRect(x + s * 0.2, y + s * 0.2, s * 0.6, s * 0.6);
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(cx - s * 0.1, cy, s * 0.06, 0, Math.PI * 2);
+            ctx.arc(cx + s * 0.1, cy, s * 0.06, 0, Math.PI * 2);
+            ctx.fill();
+        }
 
-        // Тело ведра (цилиндр, серебристый металл — шире вверху)
-        var grad = ctx.createLinearGradient(cx - s * 0.3, cy, cx + s * 0.3, cy);
-        grad.addColorStop(0, '#9E9E9E');
-        grad.addColorStop(0.3, '#E0E0E0');
-        grad.addColorStop(0.5, '#F5F5F5');
-        grad.addColorStop(0.7, '#E0E0E0');
-        grad.addColorStop(1, '#9E9E9E');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.moveTo(cx - s * 0.22, cy + s * 0.33);
-        ctx.lineTo(cx - s * 0.27, cy - s * 0.1);
-        ctx.lineTo(cx + s * 0.27, cy - s * 0.1);
-        ctx.lineTo(cx + s * 0.22, cy + s * 0.33);
-        ctx.closePath();
-        ctx.fill();
-
-        // Вертикальные блики (полированный металл)
-        ctx.fillStyle = 'rgba(255,255,255,0.25)';
-        ctx.fillRect(cx - s * 0.12, cy - s * 0.08, s * 0.04, s * 0.38);
-        ctx.fillStyle = 'rgba(255,255,255,0.15)';
-        ctx.fillRect(cx + s * 0.08, cy - s * 0.06, s * 0.03, s * 0.34);
-
-        // Верхний ободок
-        ctx.fillStyle = '#BDBDBD';
-        ctx.beginPath();
-        ctx.ellipse(cx, cy - s * 0.1, s * 0.27, s * 0.05, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Белый пакет сверху ("причёска")
-        ctx.fillStyle = '#F5F5F5';
-        ctx.beginPath();
-        ctx.moveTo(cx - s * 0.22, cy - s * 0.12);
-        ctx.quadraticCurveTo(cx - s * 0.3, cy - s * 0.35, cx - s * 0.1, cy - s * 0.32);
-        ctx.quadraticCurveTo(cx, cy - s * 0.45, cx + s * 0.12, cy - s * 0.3);
-        ctx.quadraticCurveTo(cx + s * 0.3, cy - s * 0.38, cx + s * 0.2, cy - s * 0.12);
-        ctx.closePath();
-        ctx.fill();
-        // Складки пакета
-        ctx.strokeStyle = 'rgba(200,200,200,0.5)';
-        ctx.lineWidth = 0.5;
-        ctx.beginPath();
-        ctx.moveTo(cx - s * 0.1, cy - s * 0.15);
-        ctx.quadraticCurveTo(cx, cy - s * 0.28, cx + s * 0.05, cy - s * 0.15);
-        ctx.stroke();
-
-        // Большие гугли-глаза (как на фото — крупные, белые с чёрными зрачками)
-        var eyeOffX = Math.cos(playerAngle || 0) * s * 0.04;
-        var eyeOffY = Math.sin(playerAngle || 0) * s * 0.03;
-
-        // Левый глаз
-        ctx.fillStyle = '#FFF';
-        ctx.beginPath();
-        ctx.arc(cx - s * 0.12, cy + s * 0.08, s * 0.11, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        // Зрачок
-        ctx.fillStyle = '#1A1A1A';
-        ctx.beginPath();
-        ctx.arc(cx - s * 0.12 + eyeOffX, cy + s * 0.1 + eyeOffY, s * 0.06, 0, Math.PI * 2);
-        ctx.fill();
-        // Блик в зрачке
-        ctx.fillStyle = '#FFF';
-        ctx.beginPath();
-        ctx.arc(cx - s * 0.14 + eyeOffX * 0.5, cy + s * 0.07 + eyeOffY * 0.5, s * 0.02, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Правый глаз
-        ctx.fillStyle = '#FFF';
-        ctx.beginPath();
-        ctx.arc(cx + s * 0.12, cy + s * 0.08, s * 0.11, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = '#333';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        // Зрачок
-        ctx.fillStyle = '#1A1A1A';
-        ctx.beginPath();
-        ctx.arc(cx + s * 0.12 + eyeOffX, cy + s * 0.1 + eyeOffY, s * 0.06, 0, Math.PI * 2);
-        ctx.fill();
-        // Блик
-        ctx.fillStyle = '#FFF';
-        ctx.beginPath();
-        ctx.arc(cx + s * 0.1 + eyeOffX * 0.5, cy + s * 0.07 + eyeOffY * 0.5, s * 0.02, 0, Math.PI * 2);
-        ctx.fill();
-
-        // Если полное — мусор торчит из пакета
+        // Если полное — мусор торчит сверху
         if (isFull) {
             ctx.fillStyle = '#4CAF50';
             ctx.beginPath();
-            ctx.arc(cx - s * 0.08, cy - s * 0.25, s * 0.05, 0, Math.PI * 2);
+            ctx.arc(cx - s * 0.08, y + s * 0.1, s * 0.05, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillStyle = '#FF9800';
             ctx.beginPath();
-            ctx.arc(cx + s * 0.1, cy - s * 0.28, s * 0.04, 0, Math.PI * 2);
+            ctx.arc(cx + s * 0.1, y + s * 0.07, s * 0.04, 0, Math.PI * 2);
             ctx.fill();
-            ctx.fillStyle = '#F44336';
-            ctx.fillRect(cx - s * 0.02, cy - s * 0.3, s * 0.06, s * 0.1);
         }
 
         ctx.restore();
