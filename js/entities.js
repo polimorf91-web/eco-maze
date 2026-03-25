@@ -399,17 +399,6 @@ ECO.Entities = {
                 var ts = ECO.Renderer.tileSize;
                 this.frame++;
 
-                // Таймер жизни кота
-                this.timer -= dt;
-                if (this.timer <= 0) {
-                    this.active = false;
-                    ECO.Animations.spawnFloatingText(
-                        this.pixelX + ts / 2, this.pixelY,
-                        'Пока!', '#FF9800'
-                    );
-                    return;
-                }
-
                 // Периодически искать крыс (каждые 300мс)
                 this._scanTimer = (this._scanTimer || 0) + dt;
                 if (this._scanTimer > 300) {
