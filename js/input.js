@@ -10,30 +10,37 @@ ECO.Input = {
         var self = this;
         var DIR = ECO.Config.DIR;
 
-        // Маппинг клавиш → направление
+        // Маппинг клавиш → направление (EN + RU раскладки)
         this._keyMap = {
-            'ArrowUp': DIR.UP, 'w': DIR.UP, 'W': DIR.UP,
-            'ArrowDown': DIR.DOWN, 's': DIR.DOWN, 'S': DIR.DOWN,
-            'ArrowLeft': DIR.LEFT, 'a': DIR.LEFT, 'A': DIR.LEFT,
-            'ArrowRight': DIR.RIGHT, 'd': DIR.RIGHT, 'D': DIR.RIGHT
+            'ArrowUp': DIR.UP, 'w': DIR.UP, 'W': DIR.UP, 'ц': DIR.UP, 'Ц': DIR.UP,
+            'ArrowDown': DIR.DOWN, 's': DIR.DOWN, 'S': DIR.DOWN, 'ы': DIR.DOWN, 'Ы': DIR.DOWN,
+            'ArrowLeft': DIR.LEFT, 'a': DIR.LEFT, 'A': DIR.LEFT, 'ф': DIR.LEFT, 'Ф': DIR.LEFT,
+            'ArrowRight': DIR.RIGHT, 'd': DIR.RIGHT, 'D': DIR.RIGHT, 'в': DIR.RIGHT, 'В': DIR.RIGHT
+        };
+
+        // Маппинг по коду клавиши (работает независимо от раскладки)
+        this._codeMap = {
+            'KeyW': DIR.UP, 'KeyS': DIR.DOWN, 'KeyA': DIR.LEFT, 'KeyD': DIR.RIGHT
         };
 
         // Клавиатура
         // ВАЖНО: preventDefault() только на первом нажатии, НЕ на repeat!
         // Повторные keydown с preventDefault() забивают event queue и блокируют таймеры/рендер.
         document.addEventListener('keydown', function(e) {
-            var dir = self._keyMap[e.key];
+            var dir = self._keyMap[e.key] !== undefined ? self._keyMap[e.key] : self._codeMap[e.code];
             if (dir !== undefined) {
-                if (e.repeat) return; // Полностью игнорируем repeat — клавиша уже в _pressed
+                if (e.repeat) return;
                 e.preventDefault();
-                self._pressed[e.key] = dir;
+                var k = e.code || e.key; // используем code как ключ (стабилен между раскладками)
+                self._pressed[k] = dir;
                 self.direction = dir;
                 if (ECO.Game._inputTick) ECO.Game._inputTick();
             }
         });
         document.addEventListener('keyup', function(e) {
-            if (self._pressed[e.key] !== undefined) {
-                delete self._pressed[e.key];
+            var k = e.code || e.key;
+            if (self._pressed[k] !== undefined) {
+                delete self._pressed[k];
                 self._resolveDirection();
             }
         });
