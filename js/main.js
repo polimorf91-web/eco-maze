@@ -985,15 +985,11 @@ ECO.Game = {
             }
         };
 
-        var iconScale = 32 / 24;
         for (var id in icons) {
             var el = document.getElementById(id);
             if (!el) continue;
             var c = el.getContext('2d');
-            c.save();
-            c.scale(iconScale, iconScale);
             icons[id](c);
-            c.restore();
         }
     }
 };
