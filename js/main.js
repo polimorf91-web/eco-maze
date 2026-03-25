@@ -667,6 +667,10 @@ ECO.Game = {
     _draw: function() {
         var STATE = ECO.Config.STATE;
 
+        // Показывать подсказку спецтайла только в игре
+        if (!this._stBar) this._stBar = document.getElementById('special-tile-bar');
+        if (this._stBar) this._stBar.style.display = (this.state === 'playing' || this.state === 'watering') ? 'flex' : 'none';
+
         switch (this.state) {
             case 'menu':
                 ECO.Renderer.drawMenu(this.totalTrashCollected);
