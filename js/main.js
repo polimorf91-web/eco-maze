@@ -104,14 +104,7 @@ ECO.Game = {
             }
         }
 
-        // Источник 1: setTimeout (основной)
-        function timerLoop() {
-            doTick();
-            setTimeout(timerLoop, 16);
-        }
-        setTimeout(timerLoop, 16);
-
-        // Источник 2: requestAnimationFrame (для плавности когда работает)
+        // Один game loop через requestAnimationFrame (оптимально для мобильных)
         function rafLoop() {
             doTick();
             requestAnimationFrame(rafLoop);
