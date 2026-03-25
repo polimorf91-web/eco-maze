@@ -285,8 +285,8 @@ ECO.Entities = {
                         x + ts / 2, y + ts / 2 + bounceY, ts * 0.15,
                         x + ts / 2, y + ts / 2 + bounceY, glowR
                     );
-                    grd.addColorStop(0, 'rgba(76, 175, 80, 0.35)');
-                    grd.addColorStop(1, 'rgba(76, 175, 80, 0)');
+                    grd.addColorStop(0, 'rgba(255, 193, 7, 0.4)');
+                    grd.addColorStop(1, 'rgba(255, 152, 0, 0)');
                     ctx.fillStyle = grd;
                     ctx.beginPath();
                     ctx.arc(x + ts / 2, y + ts / 2 + bounceY, glowR, 0, Math.PI * 2);
